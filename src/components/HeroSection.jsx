@@ -1,34 +1,49 @@
 // src/components/HeroSection.jsx
 
-import logoMain from "../assets/branding/logo-main.png";
-import logoIcon from "../assets/branding/logo-icon.png";
 import glowHorizontal from "../assets/effects/glow-horizontal.png";
 
+import useLanguage from "../hooks/useLanguage";
+
+import AppTopBar from "./AppTopBar";
+
 export default function HeroSection() {
+  const { t } = useLanguage();
+
   return (
     <section className="hero">
-      <nav className="navbar">
-        <img className="nav-icon" src={logoIcon} alt="CAPA 8" />
-        <img className="nav-logo" src={logoMain} alt="CAPA 8 TOOLS" />
-      </nav>
+      <AppTopBar onBack={() => {}} />
 
       <div className="hero-content">
-        <p className="eyebrow">CAPA 8 TOOLS</p>
+        <p className="eyebrow">
+          CAPA 8 TOOLS
+        </p>
 
-        <h1>Herramientas rápidas para técnicos y creadores.</h1>
+        <h1>
+          {t.heroTitle}
+        </h1>
 
         <p className="hero-text">
-          Una app móvil simple para generar textos, organizar soporte, crear
-          checklists y ahorrar tiempo en tareas digitales.
+          {t.heroDescription}
         </p>
 
         <div className="hero-actions">
-          <button className="primary-btn">Empezar</button>
-          <button className="ghost-btn">Ver herramientas</button>
+          <button className="primary-btn">
+            {t.start}
+          </button>
+
+          <button className="ghost-btn">
+            {t.seeTools}
+          </button>
         </div>
       </div>
 
-      <img className="fx-glow-horizontal" src={glowHorizontal} alt="" />
+      <img
+        className="fx-glow-horizontal"
+        src={glowHorizontal}
+        alt=""
+        loading="lazy"
+        decoding="async"
+      />
     </section>
   );
 }

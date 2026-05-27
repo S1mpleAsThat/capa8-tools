@@ -1,47 +1,49 @@
 // src/services/aiService.js
 
-// Future Gemini API integration goes here
+import {
+  AI_PROVIDER,
+} from "../config/aiConfig";
+
+import { generateMockContent } from "./ai/providers/mockProvider";
+import { generateGeminiContent } from "./ai/providers/geminiProvider";
+
+function normalizeProvider(provider) {
+  if (provider === "gemini") {
+    return "gemini";
+  }
+
+  return "mock";
+}
 
 export async function generateAIContent({
-  input,
-  type,
-}) {
-  const cleanInput = input.trim();
+  input = "",
+  type = "Prompt para ChatGPT",
+  provider = AI_PROVIDER,
+} = {}) {
+  const selectedProvider =
+    normalizeProvider(provider);
 
-  if (!cleanInput) {
-    return "Escribe una idea, problema o contexto para generar el contenido.";
+  if (selectedProvider === "gemini") {
+    try {
+      return await generateGeminiContent({
+        input,
+        type,
+      });
+    } catch {
+      return generateMockContent({
+        input,
+        type,
+      });
+    }
   }
 
-  if (type === "Prompt para ChatGPT") {
-    return `Actúa como un asistente experto y ayúdame con lo siguiente:
-
-Contexto:
-${cleanInput}
-
-Necesito una respuesta clara, ordenada y práctica. Entrega pasos concretos, evita relleno y prioriza una solución fácil de aplicar.`;
-  }
-
-  if (type === "Mensaje profesional") {
-    return `Hola, espero que estés bien.
-
-Te escribo para comentar lo siguiente: ${cleanInput}
-
-Quedo atento a tus comentarios para coordinar los próximos pasos.
-
-Saludos.`;
-  }
-
-  if (type === "Respuesta para WhatsApp") {
-    return `Hola, gracias por escribirme.
-
-Sobre lo que me comentas: ${cleanInput}
-
-Lo reviso y te confirmo apenas tenga una respuesta más clara.`;
-  }
-
-  return `🚀 ${cleanInput}
-
-Una solución práctica, rápida y pensada para optimizar el trabajo digital.
-
-#Productividad #Tecnología #HerramientasDigitales`;
+  return generateMockContent({
+    input,
+    type,
+  });
 }
+
+export {
+  generateMockContent,
+  generateGeminiContent,
+};

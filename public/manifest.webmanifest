@@ -1,0 +1,28 @@
+{
+  "name": "CAPA 8 TOOLS",
+  "short_name": "CAPA8",
+  "description": "Herramientas rápidas para técnicos y creadores.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#020403",
+  "theme_color": "#020403",
+  "orientation": "portrait",
+  "lang": "es",
+  "categories": ["productivity", "utilities", "business"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

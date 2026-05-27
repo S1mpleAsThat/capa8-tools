@@ -1,32 +1,35 @@
 // src/components/ToolsSection.jsx
 
+import useLanguage from "../hooks/useLanguage";
+
 import ToolCard from "./ToolCard";
 
-const tools = [
-  {
-    id: "ai-generator",
-    title: "Generador IA",
-    description:
-      "Crea textos, prompts y respuestas rápidas para trabajo, estudio o soporte.",
-  },
-  {
-    id: "technical-checklist",
-    title: "Checklist técnico",
-    description: "Organiza diagnósticos, pasos de revisión y tareas de soporte.",
-  },
-  {
-    id: "quick-templates",
-    title: "Plantillas rápidas",
-    description: "Mensajes profesionales listos para copiar y adaptar.",
-  },
-];
-
 export default function ToolsSection({ onSelectTool }) {
+  const { t } = useLanguage();
+
+  const tools = [
+    {
+      id: "ai-generator",
+      title: t.tools.ai.title,
+      description: t.tools.ai.description,
+    },
+    {
+      id: "technical-checklist",
+      title: t.tools.checklist.title,
+      description: t.tools.checklist.description,
+    },
+    {
+      id: "quick-templates",
+      title: t.tools.templates.title,
+      description: t.tools.templates.description,
+    },
+  ];
+
   return (
     <section className="tools-section">
       <div className="section-header">
-        <p>UTILIDADES</p>
-        <h2>Base inicial de la aplicación</h2>
+        <p>{t.toolsEyebrow}</p>
+        <h2>{t.toolsTitle}</h2>
       </div>
 
       <div className="tools-grid">
