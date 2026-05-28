@@ -156,6 +156,7 @@ export default function ToolDetail({ tool, onBack }) {
   const { t, language } = useLanguage();
 
   const userId = user?.id || "";
+  const userName = user?.name || user?.email || "";
 
   const generatorTypes = t.ai.types;
   const quickTemplates = t.templates.items;
@@ -613,6 +614,24 @@ export default function ToolDetail({ tool, onBack }) {
     setNewChecklistItem("");
   }
 
+  function handleLoadChecklistTemplate(template) {
+    if (!template || !Array.isArray(template.items) || !userId) {
+      return;
+    }
+
+    const nextChecklist = template.items.map((text, index) => ({
+      id: `template-${template.id}-${Date.now()}-${index}`,
+      text,
+      completed: false,
+      custom: true,
+      templateId: template.id,
+    }));
+
+    setChecklistItems(nextChecklist);
+    saveChecklist(nextChecklist);
+    setNewChecklistItem("");
+  }
+
   function handleTemplateRecent(template) {
     if (!userId || !isValidTemplate(template)) {
       return;
@@ -713,6 +732,8 @@ export default function ToolDetail({ tool, onBack }) {
 
       {isTechnicalChecklist ? (
         <TechnicalChecklistSection
+          userId={userId}
+          userName={userName}
           checklistItems={checklistItems}
           newChecklistItem={newChecklistItem}
           setNewChecklistItem={setNewChecklistItem}
@@ -720,6 +741,7 @@ export default function ToolDetail({ tool, onBack }) {
           handleAddChecklistItem={handleAddChecklistItem}
           handleDeleteChecklistItem={handleDeleteChecklistItem}
           handleResetChecklist={handleResetChecklist}
+          handleLoadChecklistTemplate={handleLoadChecklistTemplate}
           onBack={onBack}
         />
       ) : null}

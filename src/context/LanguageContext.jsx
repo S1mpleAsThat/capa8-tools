@@ -100,10 +100,25 @@ const translations = {
     },
 
     checklist: {
-      placeholder: "Agregar nuevo paso técnico...",
-      add: "Agregar",
-      reset: "Reiniciar checklist",
-      delete: "Eliminar",
+  placeholder: "Agregar nuevo paso técnico...",
+  add: "Agregar",
+  reset: "Reiniciar checklist",
+  delete: "Eliminar",
+
+  ai: {
+    resultTitle: "Resultado IA",
+    copy: "Copiar resultado",
+    saveIncident: "Guardar incidente",
+    saved: "Incidente guardado",
+    incidentsTitle: "Historial operativo",
+    reuse: "Reutilizar",
+    remove: "Eliminar",
+    empty: "No hay incidentes guardados.",
+    nextStepLoading: "Analizando siguiente paso...",
+    analyzeLoading: "Analizando checklist...",
+    solutionLoading: "Generando solución...",
+    reportLoading: "Creando reporte...",
+  },
       defaultItems: [
         "Revisar conexión a internet",
         "Verificar energía y cables",
@@ -113,6 +128,23 @@ const translations = {
         "Probar desde otro navegador o dispositivo",
         "Registrar diagnóstico final",
       ],
+    },
+    
+    
+    checklistAI: {
+      eyebrow: "CHECKLIST IA",
+      title: "Workflow inteligente",
+      description:
+        "Analiza el checklist actual, detecta bloqueos, genera soluciones y crea reportes profesionales asistidos por IA.",
+      nextStep: "Sugerir siguiente paso",
+      analyze: "Analizar checklist",
+      solution: "Generar solución",
+      report: "Convertir en reporte",
+      generating: "Analizando con IA...",
+      resultTitle: "RESULTADO IA",
+      errorTitle: "ERROR IA",
+      error:
+        "No se pudo completar el análisis inteligente del checklist.",
     },
 
     templates: {
@@ -333,10 +365,25 @@ const translations = {
     },
 
     checklist: {
-      placeholder: "Add new technical step...",
-      add: "Add",
-      reset: "Reset checklist",
-      delete: "Delete",
+  placeholder: "Add new technical step...",
+  add: "Add",
+  reset: "Reset checklist",
+  delete: "Delete",
+
+  ai: {
+    resultTitle: "AI Result",
+    copy: "Copy result",
+    saveIncident: "Save incident",
+    saved: "Incident saved",
+    incidentsTitle: "Operational history",
+    reuse: "Reuse",
+    remove: "Delete",
+    empty: "No incidents saved.",
+    nextStepLoading: "Analyzing next step...",
+    analyzeLoading: "Analyzing checklist...",
+    solutionLoading: "Generating solution...",
+    reportLoading: "Creating report...",
+  },
       defaultItems: [
         "Check internet connection",
         "Verify power and cables",
@@ -346,6 +393,22 @@ const translations = {
         "Test from another browser or device",
         "Register final diagnosis",
       ],
+    },
+    
+    checklistAI: {
+      eyebrow: "CHECKLIST IA",
+      title: "Workflow inteligente",
+      description:
+        "Analiza el checklist actual, detecta bloqueos, genera soluciones y crea reportes profesionales asistidos por IA.",
+      nextStep: "Sugerir siguiente paso",
+      analyze: "Analizar checklist",
+      solution: "Generar solución",
+      report: "Convertir en reporte",
+      generating: "Analizando con IA...",
+      resultTitle: "RESULTADO IA",
+      errorTitle: "ERROR IA",
+      error:
+        "No se pudo completar el análisis inteligente del checklist.",
     },
 
     templates: {
