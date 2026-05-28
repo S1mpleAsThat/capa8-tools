@@ -251,6 +251,7 @@ export function buildIncidentPayload({
         ? template.category
         : "General",
     createdAt: new Date().toISOString(),
+    checklistItems: context.checklistItems,
     checklist: context.checklistItems,
     completedItems: context.completedItems,
     pendingItems: context.pendingItems,

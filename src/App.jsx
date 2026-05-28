@@ -29,6 +29,8 @@ import {
 import AppTopBar from "./components/AppTopBar";
 import HeroSection from "./components/HeroSection";
 import ToolsSection from "./components/ToolsSection";
+import BottomBannerAd from "./components/ads/BottomBannerAd";
+import InterstitialAdHost from "./components/ads/InterstitialAdHost";
 
 const ToolDetail = lazy(() => import("./components/ToolDetail"));
 const WelcomePage = lazy(() => import("./pages/WelcomePage"));
@@ -184,6 +186,8 @@ function AppContent() {
       <img className="fx-particles" src={particlesOverlay} alt="" />
       <img className="fx-scanlines" src={scanlines} alt="" />
 
+      <InterstitialAdHost />
+
       {selectedTool ? (
         <>
           <AppTopBar onBack={handleBackHome} />
@@ -199,6 +203,7 @@ function AppContent() {
         <>
           <HeroSection />
           <ToolsSection onSelectTool={handleSelectTool} />
+          <BottomBannerAd />
         </>
       )}
     </main>

@@ -6,6 +6,8 @@ import {
   AI_PROVIDER,
 } from "../config/aiConfig";
 
+import { trackAdAction } from "./ads/adService";
+
 import { generateGeminiContent } from "./ai/providers/geminiProvider";
 import {
   generateMockContent,
@@ -47,21 +49,33 @@ export async function generateAIContent({
       : cleanInput;
 
   if (!shouldUseGemini()) {
-    return generateMockContent({
+    const result = await generateMockContent({
       input: safeInput,
       type: cleanType,
     });
+
+    trackAdAction("ai-generation");
+
+    return result;
   }
 
   try {
-    return await generateGeminiContent({
+    const result = await generateGeminiContent({
       input: safeInput,
       type: cleanType,
     });
+
+    trackAdAction("ai-generation");
+
+    return result;
   } catch {
-    return generateLocalContent({
+    const result = generateLocalContent({
       input: safeInput,
       type: cleanType,
     });
+
+    trackAdAction("ai-generation-fallback");
+
+    return result;
   }
 }

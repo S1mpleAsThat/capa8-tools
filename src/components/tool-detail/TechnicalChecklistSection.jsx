@@ -9,7 +9,10 @@ import {
   setUserItem,
 } from "../../services/storage/userStorage";
 
-import { generateChecklistAIResponse } from "../../services/checklistAIService";
+import {
+  buildIncidentPayload,
+  generateChecklistAIResponse,
+} from "../../services/checklistAIService";
 
 const CHECKLIST_AI_KEY = "technical-checklist-ai";
 const CHECKLIST_INCIDENTS_KEY = "technical-checklist-incidents";
@@ -19,18 +22,10 @@ const emptyAIState = {
   aiAnalysis: "",
   aiSolution: "",
   aiReport: "",
+  lastAIAction: "",
+  lastAIResult: "",
+  lastAICreatedAt: "",
 };
-
-function buildIncidentStatus(checklistItems = []) {
-  if (!Array.isArray(checklistItems) || checklistItems.length === 0) {
-    return "0%";
-  }
-
-  const completed = checklistItems.filter((item) => item?.completed).length;
-  const progress = Math.round((completed / checklistItems.length) * 100);
-
-  return `${progress}%`;
-}
 
 function normalizeChecklistItems(items = []) {
   if (!Array.isArray(items)) {
@@ -54,30 +49,54 @@ function normalizeChecklistItems(items = []) {
     .filter((item) => item.text.trim());
 }
 
+function buildIncidentStatus(checklistItems = []) {
+  const safeItems = normalizeChecklistItems(checklistItems);
+
+  if (safeItems.length === 0) {
+    return "0%";
+  }
+
+  const completed = safeItems.filter((item) => item.completed).length;
+  const progress = Math.round((completed / safeItems.length) * 100);
+
+  return `${progress}%`;
+}
+
+function buildSummary(text = "") {
+  if (typeof text !== "string" || !text.trim()) {
+    return "";
+  }
+
+  const cleanText = text.trim().replace(/\s+/g, " ");
+
+  return cleanText.length > 180
+    ? `${cleanText.slice(0, 180)}...`
+    : cleanText;
+}
+
 function normalizeIncident(incident) {
   if (!incident || typeof incident !== "object") {
     return null;
   }
 
-  const aiReport =
-    typeof incident.aiReport === "string"
-      ? incident.aiReport
-      : "";
+  const aiResult =
+    typeof incident.aiResult === "string"
+      ? incident.aiResult
+      : typeof incident.aiReport === "string"
+        ? incident.aiReport
+        : "";
 
-  const aiAnalysis =
-    typeof incident.aiAnalysis === "string"
-      ? incident.aiAnalysis
-      : "";
+  const checklistItems = normalizeChecklistItems(
+    incident.checklistItems || incident.checklist,
+  );
 
-  const aiSolution =
-    typeof incident.aiSolution === "string"
-      ? incident.aiSolution
-      : "";
+  const completedItems = Array.isArray(incident.completedItems)
+    ? normalizeChecklistItems(incident.completedItems)
+    : checklistItems.filter((item) => item.completed);
 
-  const createdAt =
-    typeof incident.createdAt === "string"
-      ? incident.createdAt
-      : new Date().toLocaleString("es-CL");
+  const pendingItems = Array.isArray(incident.pendingItems)
+    ? normalizeChecklistItems(incident.pendingItems)
+    : checklistItems.filter((item) => !item.completed);
 
   return {
     id:
@@ -87,16 +106,38 @@ function normalizeIncident(incident) {
     title:
       typeof incident.title === "string" && incident.title.trim()
         ? incident.title
-        : "Checklist técnico",
-    createdAt,
-    checklist: normalizeChecklistItems(incident.checklist),
-    aiAnalysis,
-    aiSolution,
-    aiReport,
+        : "Workflow operativo",
+    category:
+      typeof incident.category === "string" && incident.category.trim()
+        ? incident.category
+        : "General",
+    createdAt:
+      typeof incident.createdAt === "string"
+        ? incident.createdAt
+        : new Date().toISOString(),
+    checklistItems,
+    checklist: checklistItems,
+    completedItems,
+    pendingItems,
+    aiAction:
+      typeof incident.aiAction === "string" && incident.aiAction.trim()
+        ? incident.aiAction
+        : "report",
+    aiResult,
+    aiAnalysis:
+      typeof incident.aiAnalysis === "string" ? incident.aiAnalysis : "",
+    aiSolution:
+      typeof incident.aiSolution === "string" ? incident.aiSolution : "",
+    aiReport:
+      typeof incident.aiReport === "string" ? incident.aiReport : aiResult,
+    summary:
+      typeof incident.summary === "string" && incident.summary.trim()
+        ? incident.summary
+        : buildSummary(aiResult),
     status:
       typeof incident.status === "string" && incident.status.trim()
         ? incident.status
-        : "0%",
+        : buildIncidentStatus(checklistItems),
   };
 }
 
@@ -124,6 +165,20 @@ function downloadTextFile(fileName, text) {
   document.body.removeChild(link);
 
   URL.revokeObjectURL(url);
+}
+
+function formatDate(value) {
+  try {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) {
+      return value || "";
+    }
+
+    return date.toLocaleString();
+  } catch {
+    return value || "";
+  }
 }
 
 export default function TechnicalChecklistSection({
@@ -161,6 +216,9 @@ export default function TechnicalChecklistSection({
   const [aiAnalysis, setAiAnalysis] = useState("");
   const [aiSolution, setAiSolution] = useState("");
   const [aiReport, setAiReport] = useState("");
+  const [lastAIAction, setLastAIAction] = useState("");
+  const [lastAIResult, setLastAIResult] = useState("");
+  const [lastAICreatedAt, setLastAICreatedAt] = useState("");
 
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
   const [loadingAnalysis, setLoadingAnalysis] = useState(false);
@@ -170,6 +228,7 @@ export default function TechnicalChecklistSection({
   const [aiError, setAiError] = useState("");
   const [copyStatus, setCopyStatus] = useState("");
   const [exportStatus, setExportStatus] = useState("");
+  const [incidentStatus, setIncidentStatus] = useState("");
   const [incidentHistory, setIncidentHistory] = useState([]);
 
   const selectedTemplate = useMemo(
@@ -181,8 +240,7 @@ export default function TechnicalChecklistSection({
 
   const backHomeLabel =
     language === "en" ? "← Back to Home" : "← Volver al inicio";
-
-  const labels =
+    const labels =
     language === "en"
       ? {
           templatesEyebrow: "TECHNICAL TEMPLATES",
@@ -194,13 +252,18 @@ export default function TechnicalChecklistSection({
           aiAnalysisTitle: "TECHNICAL ANALYSIS",
           aiSolutionTitle: "SOLUTION",
           aiReportTitle: "TECHNICAL REPORT",
+          copyResult: "Copy result",
+          saveIncident: "Save incident",
+          incidentSaved: "Incident saved.",
           copyReport: "Copy report",
           exportReport: "Export TXT",
-          copied: "Report copied.",
+          copied: "Copied.",
           exported: "TXT exported.",
           incidentTitle: "Incident history",
           incidentEmpty: "No saved incidents yet.",
           clearAI: "Clear AI results",
+          reuse: "Reuse",
+          delete: "Delete",
           loadingSuggestion: "Suggesting...",
           loadingAnalysis: "Analyzing...",
           loadingSolution: "Generating solution...",
@@ -216,13 +279,18 @@ export default function TechnicalChecklistSection({
           aiAnalysisTitle: "ANÁLISIS TÉCNICO",
           aiSolutionTitle: "SOLUCIÓN",
           aiReportTitle: "REPORTE TÉCNICO",
+          copyResult: "Copiar resultado",
+          saveIncident: "Guardar incidente",
+          incidentSaved: "Incidente guardado.",
           copyReport: "Copiar reporte",
           exportReport: "Exportar TXT",
-          copied: "Reporte copiado.",
+          copied: "Copiado.",
           exported: "TXT exportado.",
           incidentTitle: "Historial de incidentes",
           incidentEmpty: "Aún no hay incidentes guardados.",
           clearAI: "Limpiar resultados IA",
+          reuse: "Reutilizar",
+          delete: "Eliminar",
           loadingSuggestion: "Sugiriendo...",
           loadingAnalysis: "Analizando...",
           loadingSolution: "Generando solución...",
@@ -235,12 +303,22 @@ export default function TechnicalChecklistSection({
     loadingSolution ||
     loadingReport;
 
+  const actionTitleMap = {
+    "next-step": labels.aiSuggestionTitle,
+    analyze: labels.aiAnalysisTitle,
+    solution: labels.aiSolutionTitle,
+    report: labels.aiReportTitle,
+  };
+
   useEffect(() => {
     if (!userId) {
       setAiSuggestion("");
       setAiAnalysis("");
       setAiSolution("");
       setAiReport("");
+      setLastAIAction("");
+      setLastAIResult("");
+      setLastAICreatedAt("");
       setIncidentHistory([]);
       return;
     }
@@ -273,6 +351,24 @@ export default function TechnicalChecklistSection({
           : "",
       );
 
+      setLastAIAction(
+        typeof savedAIState?.lastAIAction === "string"
+          ? savedAIState.lastAIAction
+          : "",
+      );
+
+      setLastAIResult(
+        typeof savedAIState?.lastAIResult === "string"
+          ? savedAIState.lastAIResult
+          : "",
+      );
+
+      setLastAICreatedAt(
+        typeof savedAIState?.lastAICreatedAt === "string"
+          ? savedAIState.lastAICreatedAt
+          : "",
+      );
+
       const normalizedIncidents = normalizeIncidents(savedIncidents);
 
       setIncidentHistory(normalizedIncidents);
@@ -282,6 +378,9 @@ export default function TechnicalChecklistSection({
       setAiAnalysis("");
       setAiSolution("");
       setAiReport("");
+      setLastAIAction("");
+      setLastAIResult("");
+      setLastAICreatedAt("");
       setIncidentHistory([]);
       setUserItem(userId, CHECKLIST_INCIDENTS_KEY, []);
       setUserItem(userId, CHECKLIST_AI_KEY, emptyAIState);
@@ -302,6 +401,9 @@ export default function TechnicalChecklistSection({
       aiAnalysis,
       aiSolution,
       aiReport,
+      lastAIAction,
+      lastAIResult,
+      lastAICreatedAt,
       ...partialState,
     };
 
@@ -309,29 +411,35 @@ export default function TechnicalChecklistSection({
     setAiAnalysis(nextState.aiAnalysis);
     setAiSolution(nextState.aiSolution);
     setAiReport(nextState.aiReport);
+    setLastAIAction(nextState.lastAIAction);
+    setLastAIResult(nextState.lastAIResult);
+    setLastAICreatedAt(nextState.lastAICreatedAt);
 
     saveAIState(nextState);
   }
 
-  function saveIncident(nextReport) {
-    if (!userId || !nextReport) {
+  function saveIncidentFromResult({
+    action,
+    result,
+  }) {
+    if (!userId || !result) {
       return;
     }
 
-    const nextIncident = {
-      id: `incident-${Date.now()}`,
+    const incident = buildIncidentPayload({
+      action,
+      aiResult: result,
+      checklistItems: safeChecklistItems,
+      template: selectedTemplate,
+    });
+
+    const normalizedIncident = normalizeIncident({
+      ...incident,
       title:
         selectedTemplate?.title ||
         (language === "en" ? "Technical checklist" : "Checklist técnico"),
-      createdAt: new Date().toLocaleString("es-CL"),
-      checklist: safeChecklistItems,
-      aiAnalysis,
-      aiSolution,
-      aiReport: nextReport,
-      status: buildIncidentStatus(safeChecklistItems),
-    };
-
-    const normalizedIncident = normalizeIncident(nextIncident);
+      category: selectedTemplate?.category || "General",
+    });
 
     if (!normalizedIncident) {
       return;
@@ -344,6 +452,11 @@ export default function TechnicalChecklistSection({
 
     setIncidentHistory(nextHistory);
     setUserItem(userId, CHECKLIST_INCIDENTS_KEY, nextHistory);
+    setIncidentStatus(labels.incidentSaved);
+
+    setTimeout(() => {
+      setIncidentStatus("");
+    }, 1800);
   }
 
   async function handleChecklistAIAction(action) {
@@ -354,6 +467,7 @@ export default function TechnicalChecklistSection({
     setAiError("");
     setCopyStatus("");
     setExportStatus("");
+    setIncidentStatus("");
 
     if (action === "next-step") {
       setLoadingSuggestion(true);
@@ -379,31 +493,31 @@ export default function TechnicalChecklistSection({
         userName,
       });
 
+      const createdAt = new Date().toISOString();
+
+      const nextState = {
+        lastAIAction: action,
+        lastAIResult: result,
+        lastAICreatedAt: createdAt,
+      };
+
       if (action === "next-step") {
-        updateAIState({
-          aiSuggestion: result,
-        });
+        nextState.aiSuggestion = result;
       }
 
       if (action === "analyze") {
-        updateAIState({
-          aiAnalysis: result,
-        });
+        nextState.aiAnalysis = result;
       }
 
       if (action === "solution") {
-        updateAIState({
-          aiSolution: result,
-        });
+        nextState.aiSolution = result;
       }
 
       if (action === "report") {
-        updateAIState({
-          aiReport: result,
-        });
-
-        saveIncident(result);
+        nextState.aiReport = result;
       }
+
+      updateAIState(nextState);
     } catch {
       setAiError(
         safeChecklistAI.error ||
@@ -418,6 +532,7 @@ export default function TechnicalChecklistSection({
       setLoadingReport(false);
     }
   }
+
   function handleTemplateLoad() {
     if (!selectedTemplate || !handleLoadChecklistTemplate) {
       return;
@@ -426,13 +541,13 @@ export default function TechnicalChecklistSection({
     handleLoadChecklistTemplate(selectedTemplate);
   }
 
-  async function handleCopyReport() {
-    if (!aiReport) {
+  async function handleCopyText(text) {
+    if (!text) {
       return;
     }
 
     try {
-      await navigator.clipboard.writeText(aiReport);
+      await navigator.clipboard.writeText(text);
       setCopyStatus(labels.copied);
 
       setTimeout(() => {
@@ -464,6 +579,34 @@ export default function TechnicalChecklistSection({
     setAiError("");
     setCopyStatus("");
     setExportStatus("");
+    setIncidentStatus("");
+  }
+
+  function handleReuseIncident(incident) {
+    const normalizedIncident = normalizeIncident(incident);
+
+    if (!normalizedIncident) {
+      return;
+    }
+
+    updateAIState({
+      lastAIAction: normalizedIncident.aiAction,
+      lastAIResult: normalizedIncident.aiResult,
+      lastAICreatedAt: normalizedIncident.createdAt,
+    });
+  }
+
+  function handleDeleteIncident(id) {
+    if (!userId) {
+      return;
+    }
+
+    const nextHistory = incidentHistory.filter(
+      (incident) => incident.id !== id,
+    );
+
+    setIncidentHistory(nextHistory);
+    setUserItem(userId, CHECKLIST_INCIDENTS_KEY, nextHistory);
   }
 
   function renderAIBlock(title, content) {
@@ -727,6 +870,83 @@ export default function TechnicalChecklistSection({
         </div>
       </div>
 
+      {lastAIResult ? (
+        <div
+          className="tool-output"
+          style={{
+            marginTop: "18px",
+            border: "1px solid rgba(0,255,170,.12)",
+            background:
+              "linear-gradient(180deg, rgba(8,24,20,.86), rgba(0,0,0,.74))",
+          }}
+        >
+          <p
+            style={{
+              color: "#18ffad",
+              fontSize: "12px",
+              fontWeight: 800,
+              letterSpacing: "1px",
+              marginBottom: "8px",
+            }}
+          >
+            {actionTitleMap[lastAIAction] || safeChecklistAI.resultTitle || "RESULTADO IA"}
+          </p>
+
+          {lastAICreatedAt ? (
+            <p
+              style={{
+                color: "rgba(255,255,255,.45)",
+                fontSize: "11px",
+                marginBottom: "12px",
+              }}
+            >
+              {formatDate(lastAICreatedAt)}
+            </p>
+          ) : null}
+
+          <p
+            style={{
+              whiteSpace: "pre-wrap",
+              color: "rgba(255,255,255,.76)",
+              fontSize: "14px",
+              lineHeight: 1.58,
+            }}
+          >
+            {lastAIResult}
+          </p>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "10px",
+              marginTop: "18px",
+            }}
+          >
+            <button
+              className="ghost-btn tool-action-btn"
+              type="button"
+              onClick={() => handleCopyText(lastAIResult)}
+            >
+              {labels.copyResult}
+            </button>
+
+            <button
+              className="ghost-btn tool-action-btn"
+              type="button"
+              onClick={() =>
+                saveIncidentFromResult({
+                  action: lastAIAction || "analyze",
+                  result: lastAIResult,
+                })
+              }
+            >
+              {labels.saveIncident}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       {aiError ? (
         <div
           className="tool-output"
@@ -778,7 +998,7 @@ export default function TechnicalChecklistSection({
           <button
             className="ghost-btn tool-action-btn"
             type="button"
-            onClick={handleCopyReport}
+            onClick={() => handleCopyText(aiReport)}
           >
             {labels.copyReport}
           </button>
@@ -793,7 +1013,7 @@ export default function TechnicalChecklistSection({
         </div>
       ) : null}
 
-      {copyStatus || exportStatus ? (
+      {copyStatus || exportStatus || incidentStatus ? (
         <p
           style={{
             color: "#18ffad",
@@ -802,11 +1022,11 @@ export default function TechnicalChecklistSection({
             marginTop: "10px",
           }}
         >
-          {copyStatus || exportStatus}
+          {copyStatus || exportStatus || incidentStatus}
         </p>
       ) : null}
 
-      {aiSuggestion || aiAnalysis || aiSolution || aiReport ? (
+      {aiSuggestion || aiAnalysis || aiSolution || aiReport || lastAIResult ? (
         <button
           className="ghost-btn tool-action-btn"
           type="button"
@@ -845,7 +1065,7 @@ export default function TechnicalChecklistSection({
               gap: "10px",
             }}
           >
-            {incidentHistory.slice(0, 5).map((incident) => (
+            {incidentHistory.slice(0, 8).map((incident) => (
               <div
                 key={incident.id}
                 style={{
@@ -871,10 +1091,65 @@ export default function TechnicalChecklistSection({
                     color: "rgba(255,255,255,.48)",
                     fontSize: "11px",
                     lineHeight: 1.4,
+                    marginBottom: "8px",
                   }}
                 >
-                  {incident.createdAt} · {incident.status}
+                  {formatDate(incident.createdAt)} ·{" "}
+                  {actionTitleMap[incident.aiAction] || incident.aiAction} ·{" "}
+                  {incident.status}
                 </p>
+
+                <p
+                  style={{
+                    color: "rgba(255,255,255,.64)",
+                    fontSize: "12px",
+                    lineHeight: 1.45,
+                  }}
+                >
+                  {incident.summary}
+                </p>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr 1fr",
+                    gap: "8px",
+                    marginTop: "12px",
+                  }}
+                >
+                  <button
+                    className="ghost-btn"
+                    type="button"
+                    onClick={() => handleCopyText(incident.aiResult)}
+                    style={{
+                      fontSize: "11px",
+                    }}
+                  >
+                    {labels.copyResult}
+                  </button>
+
+                  <button
+                    className="ghost-btn"
+                    type="button"
+                    onClick={() => handleReuseIncident(incident)}
+                    style={{
+                      fontSize: "11px",
+                    }}
+                  >
+                    {labels.reuse}
+                  </button>
+
+                  <button
+                    className="ghost-btn"
+                    type="button"
+                    onClick={() => handleDeleteIncident(incident.id)}
+                    style={{
+                      fontSize: "11px",
+                    }}
+                  >
+                    {labels.delete}
+                  </button>
+                </div>
               </div>
             ))}
           </div>
