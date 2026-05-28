@@ -1,49 +1,67 @@
 // src/services/aiService.js
 
 import {
+  AI_MAX_INPUT_LENGTH,
+  AI_MODE,
   AI_PROVIDER,
 } from "../config/aiConfig";
 
-import { generateMockContent } from "./ai/providers/mockProvider";
 import { generateGeminiContent } from "./ai/providers/geminiProvider";
+import {
+  generateMockContent,
+  generateLocalContent,
+} from "./ai/providers/mockProvider";
 
-function normalizeProvider(provider) {
-  if (provider === "gemini") {
-    return "gemini";
-  }
+function normalizeInput(input) {
+  return typeof input === "string" ? input.trim() : "";
+}
 
-  return "mock";
+function normalizeType(type) {
+  return typeof type === "string" && type.trim()
+    ? type.trim()
+    : "Prompt para ChatGPT";
+}
+
+function shouldUseGemini() {
+  return (
+    AI_PROVIDER === "gemini" ||
+    AI_MODE === "gemini" ||
+    AI_MODE === "production"
+  );
 }
 
 export async function generateAIContent({
   input = "",
   type = "Prompt para ChatGPT",
-  provider = AI_PROVIDER,
 } = {}) {
-  const selectedProvider =
-    normalizeProvider(provider);
+  const cleanInput = normalizeInput(input);
+  const cleanType = normalizeType(type);
 
-  if (selectedProvider === "gemini") {
-    try {
-      return await generateGeminiContent({
-        input,
-        type,
-      });
-    } catch {
-      return generateMockContent({
-        input,
-        type,
-      });
-    }
+  if (!cleanInput) {
+    return "";
   }
 
-  return generateMockContent({
-    input,
-    type,
-  });
-}
+  const safeInput =
+    cleanInput.length > AI_MAX_INPUT_LENGTH
+      ? cleanInput.slice(0, AI_MAX_INPUT_LENGTH)
+      : cleanInput;
 
-export {
-  generateMockContent,
-  generateGeminiContent,
-};
+  if (!shouldUseGemini()) {
+    return generateMockContent({
+      input: safeInput,
+      type: cleanType,
+    });
+  }
+
+  try {
+    return await generateGeminiContent({
+      input: safeInput,
+      type: cleanType,
+    });
+  } catch {
+    return generateLocalContent({
+      input: safeInput,
+      type: cleanType,
+    });
+  }
+}

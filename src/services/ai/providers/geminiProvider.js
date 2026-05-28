@@ -1,13 +1,10 @@
 // src/services/ai/providers/geminiProvider.js
 
 import {
-  AI_MAX_TOKENS,
   AI_RETRY_COUNT,
-  AI_TEMPERATURE,
   AI_TIMEOUT,
 } from "../../../config/aiConfig";
 
-import { buildPromptPayload } from "../prompts/promptTemplates";
 import { withTimeout } from "../utils/timeout";
 
 async function runGeminiRequest({
@@ -20,28 +17,48 @@ async function runGeminiRequest({
     return "";
   }
 
-  const promptPayload = buildPromptPayload({
-    input: cleanInput,
-    type,
-  });
-
-  const preparedRequest = {
-    provider: "gemini",
-    model: "gemini-pro",
-    temperature: AI_TEMPERATURE,
-    maxTokens: AI_MAX_TOKENS,
-    prompt: `${promptPayload.intro}
-
-${promptPayload.instruction}
-
-${cleanInput}`,
-  };
-
-  void preparedRequest;
-
-  throw new Error(
-    "Gemini provider preparado, pero la API real aún no está conectada.",
+  const response = await withTimeout(
+    fetch("/api/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        input: cleanInput,
+        type,
+      }),
+    }),
+    AI_TIMEOUT,
   );
+
+  let data = null;
+
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(
+      "La respuesta del servidor de IA no es válida.",
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      data?.error ||
+        "No se pudo generar contenido con Gemini.",
+    );
+  }
+
+  if (
+    !data?.text ||
+    typeof data.text !== "string" ||
+    !data.text.trim()
+  ) {
+    throw new Error(
+      "Gemini devolvió una respuesta vacía.",
+    );
+  }
+
+  return data.text.trim();
 }
 
 export async function generateGeminiContent({
@@ -56,25 +73,10 @@ export async function generateGeminiContent({
     attempt += 1
   ) {
     try {
-      const response = await withTimeout(
-        runGeminiRequest({
-          input,
-          type,
-        }),
-        AI_TIMEOUT,
-      );
-
-      if (
-        !response ||
-        typeof response !== "string" ||
-        !response.trim()
-      ) {
-        throw new Error(
-          "Gemini devolvió una respuesta vacía.",
-        );
-      }
-
-      return response.trim();
+      return await runGeminiRequest({
+        input,
+        type,
+      });
     } catch (error) {
       lastError = error;
     }
