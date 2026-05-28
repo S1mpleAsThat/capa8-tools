@@ -1,6 +1,9 @@
 // src/pages/LoginPage.jsx
 
-import { useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 import logoSymbolPremium from "../assets/branding/logo-symbol-premium.png";
 import capa8Logo from "../assets/branding/capa8_logo.png";
@@ -27,6 +30,21 @@ export default function LoginPage() {
   } = useLanguage();
 
   const [localError, setLocalError] = useState("");
+  const [pendingLanguage, setPendingLanguage] = useState(language);
+  const [languageStatus, setLanguageStatus] = useState("");
+
+  useEffect(() => {
+    setPendingLanguage(language);
+  }, [language]);
+
+  function handleSaveLanguage() {
+    setLanguage(pendingLanguage);
+    setLanguageStatus(t.languageSaved);
+
+    setTimeout(() => {
+      setLanguageStatus("");
+    }, 1800);
+  }
 
   async function handleGoogleLogin() {
     setLocalError("");
@@ -283,8 +301,10 @@ export default function LoginPage() {
             </span>
 
             <select
-              value={language}
-              onChange={(event) => setLanguage(event.target.value)}
+              value={pendingLanguage}
+              onChange={(event) =>
+                setPendingLanguage(event.target.value)
+              }
               style={{
                 minHeight: "40px",
                 width: "100%",
@@ -300,6 +320,30 @@ export default function LoginPage() {
               <option value="en">{t.english}</option>
             </select>
           </label>
+
+          <button
+            className="ghost-btn"
+            type="button"
+            onClick={handleSaveLanguage}
+            style={{
+              width: "180px",
+              minHeight: "40px",
+              fontSize: "12px",
+            }}
+          >
+            {t.saveLanguage}
+          </button>
+
+          {languageStatus ? (
+            <p
+              style={{
+                color: "#18ffad",
+                fontSize: "11px",
+              }}
+            >
+              {languageStatus}
+            </p>
+          ) : null}
         </div>
       </div>
     </section>

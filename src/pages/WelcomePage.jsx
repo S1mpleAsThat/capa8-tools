@@ -10,35 +10,32 @@ import glowCorner from "../assets/effects/glow-corner.png";
 import particlesOverlay from "../assets/effects/particles-overlay.png";
 import scanlines from "../assets/effects/scanlines.png";
 
-const slides = [
-  {
-    eyebrow: "TOOLS",
-    title: "HERRAMIENTAS RÁPIDAS",
-    text: "Accede a utilidades simples para ahorrar tiempo en tareas técnicas y digitales.",
-    image: onboardingTools,
-  },
-  {
-    eyebrow: "AI",
-    title: "IA PARA PRODUCTIVIDAD",
-    text: "Genera textos, respuestas y estructuras útiles desde una app rápida y preparada para escalar.",
-    image: onboardingAi,
-  },
-  {
-    eyebrow: "SUPPORT",
-    title: "SOPORTE Y PLANTILLAS",
-    text: "Organiza checklists, plantillas rápidas y flujos de soporte desde un solo lugar.",
-    image: onboardingSupport,
-  },
+import { useLanguageContext } from "../context/LanguageContext";
+
+const slideImages = [
+  onboardingTools,
+  onboardingAi,
+  onboardingSupport,
 ];
 
 export default function WelcomePage({
   onFinish,
 }) {
+  const { t } =
+    useLanguageContext();
+
   const [currentSlide, setCurrentSlide] =
     useState(0);
 
   const touchStartX = useRef(null);
   const touchEndX = useRef(null);
+
+  const slides = t.onboarding.map(
+    (slide, index) => ({
+      ...slide,
+      image: slideImages[index],
+    }),
+  );
 
   const isLastSlide =
     currentSlide === slides.length - 1;
@@ -72,6 +69,7 @@ export default function WelcomePage({
   function handleTouchStart(event) {
     touchStartX.current =
       event.touches[0].clientX;
+
     touchEndX.current = null;
   }
 
@@ -184,7 +182,7 @@ export default function WelcomePage({
             fontSize: "11px",
           }}
         >
-          Omitir
+          {t.skip}
         </button>
       </div>
 
@@ -330,7 +328,7 @@ export default function WelcomePage({
               key={item.title}
               type="button"
               onClick={() => goToSlide(index)}
-              aria-label={`Ir al slide ${index + 1}`}
+              aria-label={`Slide ${index + 1}`}
               style={{
                 width:
                   index === currentSlide
@@ -395,8 +393,8 @@ export default function WelcomePage({
             }}
           >
             {isLastSlide
-              ? "Comenzar"
-              : "Siguiente →"}
+              ? t.startOnboarding
+              : t.next}
           </button>
         </div>
       </div>

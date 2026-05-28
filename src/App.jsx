@@ -3,6 +3,8 @@
 import {
   lazy,
   Suspense,
+  useEffect,
+  useMemo,
   useState,
 } from "react";
 
@@ -16,6 +18,13 @@ import { AuthProvider } from "./context/AuthContext";
 import { LanguageProvider } from "./context/LanguageContext";
 
 import useAuth from "./hooks/useAuth";
+import useLanguage from "./hooks/useLanguage";
+
+import {
+  getUserItem,
+  removeUserItem,
+  setUserItem,
+} from "./services/storage/userStorage";
 
 import AppTopBar from "./components/AppTopBar";
 import HeroSection from "./components/HeroSection";
@@ -24,6 +33,19 @@ import ToolsSection from "./components/ToolsSection";
 const ToolDetail = lazy(() => import("./components/ToolDetail"));
 const WelcomePage = lazy(() => import("./pages/WelcomePage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
+const LanguageGatePage = lazy(() => import("./pages/LanguageGatePage"));
+
+const ACTIVE_TOOL_KEY = "active-tool";
+const PUBLIC_LANGUAGE_KEY = "capa8-public-language";
+
+function hasPublicLanguage() {
+  try {
+    const savedLanguage = localStorage.getItem(PUBLIC_LANGUAGE_KEY);
+    return savedLanguage === "es" || savedLanguage === "en";
+  } catch {
+    return false;
+  }
+}
 
 function LoadingScreen() {
   return (
@@ -44,14 +66,97 @@ function LoadingScreen() {
 }
 
 function AppContent() {
-  const [selectedTool, setSelectedTool] = useState(null);
+  const [selectedToolId, setSelectedToolId] = useState(null);
   const [hasFinishedOnboarding, setHasFinishedOnboarding] =
     useState(false);
+  const [hasSelectedPublicLanguage, setHasSelectedPublicLanguage] =
+    useState(() => hasPublicLanguage());
 
-  const { loading, isAuthenticated } = useAuth();
+  const {
+    loading,
+    isAuthenticated,
+    user,
+  } = useAuth();
+
+  const { t } = useLanguage();
+
+  const availableTools = useMemo(
+    () => [
+      {
+        id: "ai-generator",
+        title: t.tools.ai.title,
+        description: t.tools.ai.description,
+      },
+      {
+        id: "technical-checklist",
+        title: t.tools.checklist.title,
+        description: t.tools.checklist.description,
+      },
+      {
+        id: "quick-templates",
+        title: t.tools.templates.title,
+        description: t.tools.templates.description,
+      },
+    ],
+    [t],
+  );
+
+  const selectedTool = useMemo(() => {
+    if (!selectedToolId) {
+      return null;
+    }
+
+    return (
+      availableTools.find((tool) => tool.id === selectedToolId) ||
+      null
+    );
+  }, [availableTools, selectedToolId]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user?.id) {
+      setSelectedToolId(null);
+      return;
+    }
+
+    const savedToolId = getUserItem(user.id, ACTIVE_TOOL_KEY, "");
+
+    const exists = availableTools.some(
+      (tool) => tool.id === savedToolId,
+    );
+
+    setSelectedToolId(exists ? savedToolId : null);
+  }, [isAuthenticated, user?.id, availableTools]);
+
+  function handleSelectTool(tool) {
+    setSelectedToolId(tool.id);
+
+    if (user?.id) {
+      setUserItem(user.id, ACTIVE_TOOL_KEY, tool.id);
+    }
+  }
+
+  function handleBackHome() {
+    setSelectedToolId(null);
+
+    if (user?.id) {
+      removeUserItem(user.id, ACTIVE_TOOL_KEY);
+    }
+  }
+
+  function handleLanguageGateFinish() {
+    setHasSelectedPublicLanguage(true);
+  }
 
   if (loading) {
     return <LoadingScreen />;
+  }
+
+  if (!isAuthenticated && !hasSelectedPublicLanguage) {
+    return (
+      <Suspense fallback={<LoadingScreen />}>
+        <LanguageGatePage onFinish={handleLanguageGateFinish} />
+      </Suspense>
+    );
   }
 
   if (!isAuthenticated && !hasFinishedOnboarding) {
@@ -81,21 +186,19 @@ function AppContent() {
 
       {selectedTool ? (
         <>
-          <AppTopBar
-            onBack={() => setSelectedTool(null)}
-          />
+          <AppTopBar onBack={handleBackHome} />
 
           <Suspense fallback={<LoadingScreen />}>
             <ToolDetail
               tool={selectedTool}
-              onBack={() => setSelectedTool(null)}
+              onBack={handleBackHome}
             />
           </Suspense>
         </>
       ) : (
         <>
           <HeroSection />
-          <ToolsSection onSelectTool={setSelectedTool} />
+          <ToolsSection onSelectTool={handleSelectTool} />
         </>
       )}
     </main>

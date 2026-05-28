@@ -17,14 +17,24 @@ import {
 
 const LanguageContext = createContext(null);
 
-const PUBLIC_LANGUAGE_KEY = "capa8-public-language";
+export const PUBLIC_LANGUAGE_KEY = "capa8-public-language";
 
 const translations = {
   es: {
     loading: "Cargando...",
     language: "Idioma",
+    saveLanguage: "Guardar idioma",
+    languageSaved: "Idioma guardado",
     spanish: "Español",
     english: "English",
+
+    chooseLanguage: "Selecciona tu idioma",
+    chooseLanguageText:
+      "Configura la experiencia inicial de CAPA 8 TOOLS antes de comenzar.",
+    continue: "Continuar",
+    skip: "Omitir",
+    startOnboarding: "Comenzar",
+    next: "Siguiente →",
 
     loginGoogle: "Ingresar con Google",
     loginDemo: "Continuar como demo",
@@ -41,10 +51,188 @@ const translations = {
     toolsEyebrow: "UTILIDADES",
     toolsTitle: "Base inicial de la aplicación",
 
+    toolEyebrow: "HERRAMIENTA",
+    back: "Volver",
+
     userExportData: "Exportar mis datos",
     userAIHistory: "Historial IA",
     userLogout: "Cerrar sesión",
     userFooter: "CAPA 8 TOOLS MVP",
+
+    onboarding: [
+      {
+        eyebrow: "TOOLS",
+        title: "HERRAMIENTAS RÁPIDAS",
+        text:
+          "Accede a utilidades simples para ahorrar tiempo en tareas técnicas y digitales.",
+      },
+      {
+        eyebrow: "AI",
+        title: "IA PARA PRODUCTIVIDAD",
+        text:
+          "Genera textos, respuestas y estructuras útiles desde una app rápida y preparada para escalar.",
+      },
+      {
+        eyebrow: "SUPPORT",
+        title: "SOPORTE Y PLANTILLAS",
+        text:
+          "Organiza checklists, plantillas rápidas y flujos de soporte desde un solo lugar.",
+      },
+    ],
+
+    ai: {
+      placeholder: "Escribe aquí tu idea o contexto...",
+      characters: "caracteres",
+      generating: "Generando",
+      generate: "Generar",
+      emptyOutput:
+        "La IA generará una respuesta basada en tu contexto.",
+      copy: "Copiar",
+      copied: "Copiado",
+      clear: "Limpiar",
+      error: "Error",
+      types: [
+        "Prompt para ChatGPT",
+        "Mensaje profesional",
+        "Respuesta para WhatsApp",
+        "Publicación redes sociales",
+      ],
+    },
+
+    checklist: {
+      placeholder: "Agregar nuevo paso técnico...",
+      add: "Agregar",
+      reset: "Reiniciar checklist",
+      delete: "Eliminar",
+      defaultItems: [
+        "Revisar conexión a internet",
+        "Verificar energía y cables",
+        "Reiniciar equipo o servicio",
+        "Revisar mensajes de error",
+        "Validar permisos de usuario",
+        "Probar desde otro navegador o dispositivo",
+        "Registrar diagnóstico final",
+      ],
+    },
+
+    templates: {
+      search: "Buscar plantilla...",
+      favoritesEyebrow: "FAVORITOS",
+      favoritesTitle: "Plantillas favoritas",
+      recentsEyebrow: "RECIENTES",
+      recentsTitle: "Usadas recientemente",
+      libraryEyebrow: "PLANTILLAS",
+      libraryTitle: "Biblioteca rápida",
+      copy: "Copiar",
+      useInAI: "Usar en IA",
+      activeFavorite: "Favorito activo",
+      addFavorite: "Agregar favorito",
+      items: [
+        {
+          id: "support-restart",
+          category: "Soporte técnico",
+          title: "Reinicio de servicio",
+          text:
+            "Hola. Hemos realizado un reinicio controlado del servicio para estabilizar el sistema. Por favor vuelve a probar y confirma si el problema continúa.",
+        },
+        {
+          id: "support-evidence",
+          category: "Soporte técnico",
+          title: "Solicitud de evidencia",
+          text:
+            "Necesitamos una captura de pantalla del error y una breve descripción de los pasos realizados antes de que ocurriera el problema.",
+        },
+        {
+          id: "support-maintenance",
+          category: "Soporte técnico",
+          title: "Mantenimiento programado",
+          text:
+            "El sistema tendrá una ventana de mantenimiento programada durante las próximas horas. Algunos servicios podrían presentar lentitud temporal.",
+        },
+        {
+          id: "customer-followup",
+          category: "Atención cliente",
+          title: "Seguimiento cliente",
+          text:
+            "Hola. Queríamos confirmar si la solución entregada resolvió correctamente tu solicitud. Quedamos atentos a cualquier duda adicional.",
+        },
+        {
+          id: "customer-response",
+          category: "Atención cliente",
+          title: "Respuesta cordial",
+          text:
+            "Gracias por contactarnos. Revisaremos tu caso lo antes posible para entregarte una solución clara y rápida.",
+        },
+        {
+          id: "customer-confirmation",
+          category: "Atención cliente",
+          title: "Confirmación recepción",
+          text:
+            "Tu solicitud fue recibida correctamente y ya está siendo revisada por nuestro equipo.",
+        },
+        {
+          id: "sales-intro",
+          category: "Ventas",
+          title: "Presentación servicio",
+          text:
+            "Ofrecemos soluciones digitales rápidas y optimizadas para automatizar procesos y mejorar productividad.",
+        },
+        {
+          id: "sales-offer",
+          category: "Ventas",
+          title: "Oferta limitada",
+          text:
+            "Tenemos disponibilidad limitada para nuevos proyectos este mes. Podemos coordinar una reunión rápida para revisar tu necesidad.",
+        },
+        {
+          id: "sales-close",
+          category: "Ventas",
+          title: "Cierre comercial",
+          text:
+            "Quedamos atentos para avanzar con la implementación y comenzar el proyecto lo antes posible.",
+        },
+        {
+          id: "social-productivity",
+          category: "Redes sociales",
+          title: "Post productividad",
+          text:
+            "🚀 Automatizar tareas simples puede ahorrar horas de trabajo cada semana. La eficiencia también es una ventaja competitiva.",
+        },
+        {
+          id: "social-tech",
+          category: "Redes sociales",
+          title: "Post tecnología",
+          text:
+            "⚡ Herramientas digitales bien diseñadas permiten trabajar más rápido, con menos errores y mejor organización.",
+        },
+        {
+          id: "social-motivation",
+          category: "Redes sociales",
+          title: "Post motivacional",
+          text:
+            "💡 Construir sistemas simples pero útiles es una de las mejores formas de crear productos escalables.",
+        },
+      ],
+    },
+
+    history: {
+      eyebrow: "HISTORIAL",
+      title: "Generaciones recientes",
+      clear: "Limpiar historial",
+      copy: "Copiar",
+      reuse: "Reutilizar",
+      delete: "Eliminar",
+    },
+
+    backup: {
+      eyebrow: "HERRAMIENTAS DE RESPALDO",
+      title: "Respaldo local",
+      description:
+        "Exporta o restaura historial IA, favoritos, recientes y checklist técnico desde un archivo JSON local.",
+      export: "Exportar datos",
+      import: "Importar datos",
+      clear: "Limpiar datos",
+    },
 
     tools: {
       ai: {
@@ -68,8 +256,18 @@ const translations = {
   en: {
     loading: "Loading...",
     language: "Language",
+    saveLanguage: "Save language",
+    languageSaved: "Language saved",
     spanish: "Español",
     english: "English",
+
+    chooseLanguage: "Choose your language",
+    chooseLanguageText:
+      "Set your initial CAPA 8 TOOLS experience before starting.",
+    continue: "Continue",
+    skip: "Skip",
+    startOnboarding: "Start",
+    next: "Next →",
 
     loginGoogle: "Continue with Google",
     loginDemo: "Continue as demo",
@@ -86,10 +284,188 @@ const translations = {
     toolsEyebrow: "UTILITIES",
     toolsTitle: "Initial application base",
 
+    toolEyebrow: "TOOL",
+    back: "Back",
+
     userExportData: "Export my data",
     userAIHistory: "AI history",
     userLogout: "Sign out",
     userFooter: "CAPA 8 TOOLS MVP",
+
+    onboarding: [
+      {
+        eyebrow: "TOOLS",
+        title: "FAST TOOLS",
+        text:
+          "Access simple utilities to save time on technical and digital tasks.",
+      },
+      {
+        eyebrow: "AI",
+        title: "AI FOR PRODUCTIVITY",
+        text:
+          "Generate texts, responses and useful structures from a fast app ready to scale.",
+      },
+      {
+        eyebrow: "SUPPORT",
+        title: "SUPPORT AND TEMPLATES",
+        text:
+          "Organize checklists, quick templates and support workflows from one place.",
+      },
+    ],
+
+    ai: {
+      placeholder: "Write your idea or context here...",
+      characters: "characters",
+      generating: "Generating",
+      generate: "Generate",
+      emptyOutput:
+        "AI will generate a response based on your context.",
+      copy: "Copy",
+      copied: "Copied",
+      clear: "Clear",
+      error: "Error",
+      types: [
+        "ChatGPT prompt",
+        "Professional message",
+        "WhatsApp reply",
+        "Social media post",
+      ],
+    },
+
+    checklist: {
+      placeholder: "Add new technical step...",
+      add: "Add",
+      reset: "Reset checklist",
+      delete: "Delete",
+      defaultItems: [
+        "Check internet connection",
+        "Verify power and cables",
+        "Restart device or service",
+        "Review error messages",
+        "Validate user permissions",
+        "Test from another browser or device",
+        "Register final diagnosis",
+      ],
+    },
+
+    templates: {
+      search: "Search template...",
+      favoritesEyebrow: "FAVORITES",
+      favoritesTitle: "Favorite templates",
+      recentsEyebrow: "RECENT",
+      recentsTitle: "Recently used",
+      libraryEyebrow: "TEMPLATES",
+      libraryTitle: "Quick library",
+      copy: "Copy",
+      useInAI: "Use in AI",
+      activeFavorite: "Favorite active",
+      addFavorite: "Add favorite",
+      items: [
+        {
+          id: "support-restart",
+          category: "Technical support",
+          title: "Service restart",
+          text:
+            "Hello. We performed a controlled service restart to stabilize the system. Please try again and confirm whether the issue continues.",
+        },
+        {
+          id: "support-evidence",
+          category: "Technical support",
+          title: "Evidence request",
+          text:
+            "We need a screenshot of the error and a brief description of the steps taken before the issue occurred.",
+        },
+        {
+          id: "support-maintenance",
+          category: "Technical support",
+          title: "Scheduled maintenance",
+          text:
+            "The system will have a scheduled maintenance window during the next few hours. Some services may temporarily slow down.",
+        },
+        {
+          id: "customer-followup",
+          category: "Customer support",
+          title: "Customer follow-up",
+          text:
+            "Hello. We wanted to confirm whether the provided solution correctly resolved your request. We remain available for any additional questions.",
+        },
+        {
+          id: "customer-response",
+          category: "Customer support",
+          title: "Polite response",
+          text:
+            "Thank you for contacting us. We will review your case as soon as possible to provide a clear and fast solution.",
+        },
+        {
+          id: "customer-confirmation",
+          category: "Customer support",
+          title: "Request received",
+          text:
+            "Your request was received correctly and is already being reviewed by our team.",
+        },
+        {
+          id: "sales-intro",
+          category: "Sales",
+          title: "Service introduction",
+          text:
+            "We offer fast and optimized digital solutions to automate processes and improve productivity.",
+        },
+        {
+          id: "sales-offer",
+          category: "Sales",
+          title: "Limited offer",
+          text:
+            "We have limited availability for new projects this month. We can schedule a quick meeting to review your needs.",
+        },
+        {
+          id: "sales-close",
+          category: "Sales",
+          title: "Commercial closing",
+          text:
+            "We remain available to move forward with the implementation and start the project as soon as possible.",
+        },
+        {
+          id: "social-productivity",
+          category: "Social media",
+          title: "Productivity post",
+          text:
+            "🚀 Automating simple tasks can save hours of work every week. Efficiency is also a competitive advantage.",
+        },
+        {
+          id: "social-tech",
+          category: "Social media",
+          title: "Technology post",
+          text:
+            "⚡ Well-designed digital tools allow teams to work faster, with fewer errors and better organization.",
+        },
+        {
+          id: "social-motivation",
+          category: "Social media",
+          title: "Motivational post",
+          text:
+            "💡 Building simple but useful systems is one of the best ways to create scalable products.",
+        },
+      ],
+    },
+
+    history: {
+      eyebrow: "HISTORY",
+      title: "Recent generations",
+      clear: "Clear history",
+      copy: "Copy",
+      reuse: "Reuse",
+      delete: "Delete",
+    },
+
+    backup: {
+      eyebrow: "BACKUP TOOLS",
+      title: "Local backup",
+      description:
+        "Export or restore AI history, favorites, recents and technical checklist from a local JSON file.",
+      export: "Export data",
+      import: "Import data",
+      clear: "Clear data",
+    },
 
     tools: {
       ai: {
@@ -111,19 +487,35 @@ const translations = {
   },
 };
 
-function getPublicLanguage() {
-  try {
-    const savedLanguage = localStorage.getItem(PUBLIC_LANGUAGE_KEY);
+function normalizeLanguage(language) {
+  return language === "en" ? "en" : "es";
+}
 
-    return savedLanguage === "en" ? "en" : "es";
+export function getPublicLanguage() {
+  try {
+    return normalizeLanguage(
+      localStorage.getItem(PUBLIC_LANGUAGE_KEY),
+    );
   } catch {
     return "es";
   }
 }
 
-function savePublicLanguage(language) {
+export function hasSavedPublicLanguage() {
   try {
-    localStorage.setItem(PUBLIC_LANGUAGE_KEY, language);
+    const savedLanguage = localStorage.getItem(PUBLIC_LANGUAGE_KEY);
+    return savedLanguage === "es" || savedLanguage === "en";
+  } catch {
+    return false;
+  }
+}
+
+export function savePublicLanguage(language) {
+  try {
+    localStorage.setItem(
+      PUBLIC_LANGUAGE_KEY,
+      normalizeLanguage(language),
+    );
   } catch {
     return;
   }
@@ -137,12 +529,12 @@ export function LanguageProvider({ children }) {
   );
 
   useEffect(() => {
+    const publicLanguage = getPublicLanguage();
+
     if (!user?.id) {
-      setLanguageState(getPublicLanguage());
+      setLanguageState(publicLanguage);
       return;
     }
-
-    const publicLanguage = getPublicLanguage();
 
     const savedLanguage = getUserItem(
       user.id,
@@ -150,16 +542,14 @@ export function LanguageProvider({ children }) {
       publicLanguage,
     );
 
-    const normalizedLanguage =
-      savedLanguage === "en" ? "en" : "es";
+    const normalizedLanguage = normalizeLanguage(savedLanguage);
 
     setLanguageState(normalizedLanguage);
     savePublicLanguage(normalizedLanguage);
   }, [user?.id]);
 
   function setLanguage(nextLanguage) {
-    const normalizedLanguage =
-      nextLanguage === "en" ? "en" : "es";
+    const normalizedLanguage = normalizeLanguage(nextLanguage);
 
     setLanguageState(normalizedLanguage);
     savePublicLanguage(normalizedLanguage);

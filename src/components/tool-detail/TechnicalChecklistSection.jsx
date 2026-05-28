@@ -1,5 +1,7 @@
 // src/components/tool-detail/TechnicalChecklistSection.jsx
 
+import useLanguage from "../../hooks/useLanguage";
+
 export default function TechnicalChecklistSection({
   checklistItems,
   newChecklistItem,
@@ -8,7 +10,13 @@ export default function TechnicalChecklistSection({
   handleAddChecklistItem,
   handleDeleteChecklistItem,
   handleResetChecklist,
+  onBack,
 }) {
+  const { t, language } = useLanguage();
+
+  const backHomeLabel =
+    language === "en" ? "← Back to Home" : "← Volver al inicio";
+
   return (
     <div className="tool-workspace">
       <div className="tool-output">
@@ -59,7 +67,7 @@ export default function TechnicalChecklistSection({
                     )
                   }
                 >
-                  Eliminar
+                  {t.checklist.delete}
                 </button>
               ) : null}
             </label>
@@ -75,7 +83,7 @@ export default function TechnicalChecklistSection({
             event.target.value,
           )
         }
-        placeholder="Agregar nuevo paso técnico..."
+        placeholder={t.checklist.placeholder}
         rows="3"
       />
 
@@ -84,7 +92,7 @@ export default function TechnicalChecklistSection({
         type="button"
         onClick={handleAddChecklistItem}
       >
-        Agregar
+        {t.checklist.add}
       </button>
 
       <button
@@ -92,8 +100,33 @@ export default function TechnicalChecklistSection({
         type="button"
         onClick={handleResetChecklist}
       >
-        Reiniciar checklist
+        {t.checklist.reset}
       </button>
+
+      <div
+        style={{
+          marginTop: "28px",
+          paddingTop: "4px",
+        }}
+      >
+        <button
+          className="ghost-btn tool-action-btn"
+          type="button"
+          onClick={onBack}
+          style={{
+            width: "100%",
+            minHeight: "52px",
+            borderRadius: "18px",
+            border: "1px solid rgba(0,255,170,.18)",
+            background:
+              "linear-gradient(180deg, rgba(8,32,26,.74), rgba(0,0,0,.70))",
+            boxShadow:
+              "0 18px 42px rgba(0,0,0,.38), inset 0 0 22px rgba(0,255,170,.04), 0 0 24px rgba(0,255,170,.06)",
+          }}
+        >
+          {backHomeLabel}
+        </button>
+      </div>
     </div>
   );
 }

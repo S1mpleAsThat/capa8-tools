@@ -1,5 +1,7 @@
 // src/components/tool-detail/BackupToolsSection.jsx
 
+import useLanguage from "../../hooks/useLanguage";
+
 export default function BackupToolsSection({
   backupFileInputRef,
   backupStatus,
@@ -8,6 +10,8 @@ export default function BackupToolsSection({
   handleImportBackup,
   handleClearBackupData,
 }) {
+  const { t } = useLanguage();
+
   return (
     <div
       className="tool-output"
@@ -24,7 +28,7 @@ export default function BackupToolsSection({
           marginBottom: "8px",
         }}
       >
-        HERRAMIENTAS DE RESPALDO
+        {t.backup.eyebrow}
       </p>
 
       <h3
@@ -32,7 +36,7 @@ export default function BackupToolsSection({
           marginBottom: "10px",
         }}
       >
-        Respaldo local
+        {t.backup.title}
       </h3>
 
       <p
@@ -43,7 +47,7 @@ export default function BackupToolsSection({
           marginBottom: "16px",
         }}
       >
-        Exporta o restaura historial IA, favoritos, recientes y checklist técnico desde un archivo JSON local.
+        {t.backup.description}
       </p>
 
       <input
@@ -68,7 +72,7 @@ export default function BackupToolsSection({
           type="button"
           onClick={handleExportBackup}
         >
-          Exportar datos
+          {t.backup.export}
         </button>
 
         <button
@@ -76,7 +80,7 @@ export default function BackupToolsSection({
           type="button"
           onClick={handleOpenImportBackup}
         >
-          Importar datos
+          {t.backup.import}
         </button>
 
         <button
@@ -84,7 +88,7 @@ export default function BackupToolsSection({
           type="button"
           onClick={handleClearBackupData}
         >
-          Limpiar datos
+          {t.backup.clear}
         </button>
       </div>
 

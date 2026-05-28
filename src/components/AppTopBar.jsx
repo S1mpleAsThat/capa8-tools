@@ -49,8 +49,14 @@ export default function AppTopBar({ onBack }) {
   } = useLanguage();
 
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  const [pendingLanguage, setPendingLanguage] = useState(language);
+  const [languageStatus, setLanguageStatus] = useState("");
 
   const panelRef = useRef(null);
+
+  useEffect(() => {
+    setPendingLanguage(language);
+  }, [language]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -88,8 +94,13 @@ export default function AppTopBar({ onBack }) {
     setIsPanelOpen((currentValue) => !currentValue);
   }
 
-  function handleLanguageChange(event) {
-    setLanguage(event.target.value);
+  function handleSaveLanguage() {
+    setLanguage(pendingLanguage);
+    setLanguageStatus(t.languageSaved);
+
+    setTimeout(() => {
+      setLanguageStatus("");
+    }, 1800);
   }
 
   function handleExportUserData() {
@@ -384,7 +395,7 @@ export default function AppTopBar({ onBack }) {
             style={{
               display: "grid",
               gap: "8px",
-              marginBottom: "14px",
+              marginBottom: "10px",
             }}
           >
             <span
@@ -400,8 +411,10 @@ export default function AppTopBar({ onBack }) {
             </span>
 
             <select
-              value={language}
-              onChange={handleLanguageChange}
+              value={pendingLanguage}
+              onChange={(event) =>
+                setPendingLanguage(event.target.value)
+              }
               style={{
                 minHeight: "42px",
                 width: "100%",
@@ -417,6 +430,33 @@ export default function AppTopBar({ onBack }) {
               <option value="en">{t.english}</option>
             </select>
           </label>
+
+          <button
+            className="ghost-btn"
+            type="button"
+            onClick={handleSaveLanguage}
+            style={{
+              minHeight: "40px",
+              fontSize: "12px",
+              marginBottom: "10px",
+              width: "100%",
+            }}
+          >
+            {t.saveLanguage}
+          </button>
+
+          {languageStatus ? (
+            <p
+              style={{
+                color: "#18ffad",
+                fontSize: "11px",
+                textAlign: "center",
+                marginBottom: "10px",
+              }}
+            >
+              {languageStatus}
+            </p>
+          ) : null}
 
           <div
             style={{

@@ -12,103 +12,12 @@ import {
 } from "../services/storage/userStorage";
 
 import useAuth from "../hooks/useAuth";
+import useLanguage from "../hooks/useLanguage";
 
 import ToolHeader from "./tool-detail/ToolHeader";
 import AIGeneratorSection from "./tool-detail/AIGeneratorSection";
 import TechnicalChecklistSection from "./tool-detail/TechnicalChecklistSection";
 import QuickTemplatesSection from "./tool-detail/QuickTemplatesSection";
-
-const generatorTypes = [
-  "Prompt para ChatGPT",
-  "Mensaje profesional",
-  "Respuesta para WhatsApp",
-  "Publicación redes sociales",
-];
-
-const quickTemplates = [
-  {
-    id: "support-restart",
-    category: "Soporte técnico",
-    title: "Reinicio de servicio",
-    text: "Hola. Hemos realizado un reinicio controlado del servicio para estabilizar el sistema. Por favor vuelve a probar y confirma si el problema continúa.",
-  },
-  {
-    id: "support-evidence",
-    category: "Soporte técnico",
-    title: "Solicitud de evidencia",
-    text: "Necesitamos una captura de pantalla del error y una breve descripción de los pasos realizados antes de que ocurriera el problema.",
-  },
-  {
-    id: "support-maintenance",
-    category: "Soporte técnico",
-    title: "Mantenimiento programado",
-    text: "El sistema tendrá una ventana de mantenimiento programada durante las próximas horas. Algunos servicios podrían presentar lentitud temporal.",
-  },
-  {
-    id: "customer-followup",
-    category: "Atención cliente",
-    title: "Seguimiento cliente",
-    text: "Hola. Queríamos confirmar si la solución entregada resolvió correctamente tu solicitud. Quedamos atentos a cualquier duda adicional.",
-  },
-  {
-    id: "customer-response",
-    category: "Atención cliente",
-    title: "Respuesta cordial",
-    text: "Gracias por contactarnos. Revisaremos tu caso lo antes posible para entregarte una solución clara y rápida.",
-  },
-  {
-    id: "customer-confirmation",
-    category: "Atención cliente",
-    title: "Confirmación recepción",
-    text: "Tu solicitud fue recibida correctamente y ya está siendo revisada por nuestro equipo.",
-  },
-  {
-    id: "sales-intro",
-    category: "Ventas",
-    title: "Presentación servicio",
-    text: "Ofrecemos soluciones digitales rápidas y optimizadas para automatizar procesos y mejorar productividad.",
-  },
-  {
-    id: "sales-offer",
-    category: "Ventas",
-    title: "Oferta limitada",
-    text: "Tenemos disponibilidad limitada para nuevos proyectos este mes. Podemos coordinar una reunión rápida para revisar tu necesidad.",
-  },
-  {
-    id: "sales-close",
-    category: "Ventas",
-    title: "Cierre comercial",
-    text: "Quedamos atentos para avanzar con la implementación y comenzar el proyecto lo antes posible.",
-  },
-  {
-    id: "social-productivity",
-    category: "Redes sociales",
-    title: "Post productividad",
-    text: "🚀 Automatizar tareas simples puede ahorrar horas de trabajo cada semana. La eficiencia también es una ventaja competitiva.",
-  },
-  {
-    id: "social-tech",
-    category: "Redes sociales",
-    title: "Post tecnología",
-    text: "⚡ Herramientas digitales bien diseñadas permiten trabajar más rápido, con menos errores y mejor organización.",
-  },
-  {
-    id: "social-motivation",
-    category: "Redes sociales",
-    title: "Post motivacional",
-    text: "💡 Construir sistemas simples pero útiles es una de las mejores formas de crear productos escalables.",
-  },
-];
-
-const defaultChecklistItems = [
-  "Revisar conexión a internet",
-  "Verificar energía y cables",
-  "Reiniciar equipo o servicio",
-  "Revisar mensajes de error",
-  "Validar permisos de usuario",
-  "Probar desde otro navegador o dispositivo",
-  "Registrar diagnóstico final",
-];
 
 const storageKeys = {
   aiHistory: "ai-history",
@@ -118,13 +27,67 @@ const storageKeys = {
   aiPrefill: "ai-prefill",
 };
 
-function buildDefaultChecklist() {
-  return defaultChecklistItems.map((text, index) => ({
+function buildDefaultChecklist(defaultItems) {
+  return defaultItems.map((text, index) => ({
     id: `default-${index}`,
     text,
     completed: false,
     custom: false,
   }));
+}
+
+function localizeChecklistItems(items, defaultItems) {
+  if (!Array.isArray(items) || items.length === 0) {
+    return buildDefaultChecklist(defaultItems);
+  }
+
+  return items.map((item) => {
+    if (item?.id?.startsWith("default-") && !item.custom) {
+      const index = Number(item.id.replace("default-", ""));
+      const translatedText = defaultItems[index];
+
+      if (translatedText) {
+        return {
+          ...item,
+          text: translatedText,
+        };
+      }
+    }
+
+    return item;
+  });
+}
+
+function isValidTemplate(template) {
+  return (
+    template &&
+    typeof template === "object" &&
+    typeof template.id === "string" &&
+    typeof template.category === "string" &&
+    typeof template.title === "string" &&
+    typeof template.text === "string"
+  );
+}
+
+function normalizeTemplates(items, currentTemplates) {
+  if (!Array.isArray(items)) {
+    return [];
+  }
+
+  return items
+    .filter((item) => item && typeof item === "object")
+    .map((item) => {
+      const currentTemplate = currentTemplates.find(
+        (template) => template.id === item.id,
+      );
+
+      if (currentTemplate) {
+        return currentTemplate;
+      }
+
+      return item;
+    })
+    .filter(isValidTemplate);
 }
 
 function downloadJsonFile(fileName, data) {
@@ -149,7 +112,7 @@ function downloadJsonFile(fileName, data) {
 function readJsonFile(file) {
   return new Promise((resolve, reject) => {
     if (!file) {
-      reject(new Error("No se seleccionó ningún archivo."));
+      reject(new Error("No file selected."));
       return;
     }
 
@@ -159,12 +122,12 @@ function readJsonFile(file) {
       try {
         resolve(JSON.parse(reader.result));
       } catch {
-        reject(new Error("No se pudo leer el archivo JSON."));
+        reject(new Error("Invalid JSON file."));
       }
     };
 
     reader.onerror = () => {
-      reject(new Error("Ocurrió un error al leer el archivo."));
+      reject(new Error("File reading error."));
     };
 
     reader.readAsText(file);
@@ -173,7 +136,7 @@ function readJsonFile(file) {
 
 function normalizeImportedBackup(data) {
   if (!data || typeof data !== "object") {
-    throw new Error("El archivo no tiene una estructura válida.");
+    throw new Error("Invalid backup structure.");
   }
 
   return {
@@ -190,8 +153,18 @@ function normalizeImportedBackup(data) {
 
 export default function ToolDetail({ tool, onBack }) {
   const { user } = useAuth();
+  const { t, language } = useLanguage();
 
   const userId = user?.id || "";
+
+  const generatorTypes = t.ai.types;
+  const quickTemplates = t.templates.items;
+  const defaultChecklistItems = t.checklist.defaultItems;
+
+  const defaultChecklist = useMemo(
+    () => buildDefaultChecklist(defaultChecklistItems),
+    [defaultChecklistItems],
+  );
 
   const [input, setInput] = useState("");
   const [type, setType] = useState(generatorTypes[0]);
@@ -199,10 +172,10 @@ export default function ToolDetail({ tool, onBack }) {
   const [displayedOutput, setDisplayedOutput] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [loadingDots, setLoadingDots] = useState(".");
-  const [copyLabel, setCopyLabel] = useState("Copiar");
+  const [copyLabel, setCopyLabel] = useState(t.ai.copy);
   const [backupStatus, setBackupStatus] = useState("");
   const [history, setHistory] = useState([]);
-  const [checklistItems, setChecklistItems] = useState(buildDefaultChecklist());
+  const [checklistItems, setChecklistItems] = useState(defaultChecklist);
   const [newChecklistItem, setNewChecklistItem] = useState("");
   const [templateSearch, setTemplateSearch] = useState("");
   const [favoriteTemplates, setFavoriteTemplates] = useState([]);
@@ -221,11 +194,20 @@ export default function ToolDetail({ tool, onBack }) {
 
     return quickTemplates.filter(
       (template) =>
-        template.title.toLowerCase().includes(search) ||
-        template.category.toLowerCase().includes(search) ||
-        template.text.toLowerCase().includes(search),
+        isValidTemplate(template) &&
+        (template.title.toLowerCase().includes(search) ||
+          template.category.toLowerCase().includes(search) ||
+          template.text.toLowerCase().includes(search)),
     );
-  }, [templateSearch]);
+  }, [quickTemplates, templateSearch]);
+
+  useEffect(() => {
+    if (!generatorTypes.includes(type)) {
+      setType(generatorTypes[0]);
+    }
+
+    setCopyLabel(t.ai.copy);
+  }, [generatorTypes, type, t.ai.copy]);
 
   function saveHistory(nextHistory) {
     setUserItem(userId, storageKeys.aiHistory, nextHistory.slice(0, 10));
@@ -236,24 +218,28 @@ export default function ToolDetail({ tool, onBack }) {
   }
 
   function saveFavorites(nextFavorites) {
-    setUserItem(userId, storageKeys.templateFavorites, nextFavorites);
+    const safeFavorites = normalizeTemplates(nextFavorites, quickTemplates);
+
+    setUserItem(userId, storageKeys.templateFavorites, safeFavorites);
   }
 
   function saveRecents(nextRecents) {
-    setUserItem(userId, storageKeys.templateRecents, nextRecents.slice(0, 5));
+    const safeRecents = normalizeTemplates(nextRecents, quickTemplates);
+
+    setUserItem(userId, storageKeys.templateRecents, safeRecents.slice(0, 5));
   }
 
   useEffect(() => {
     if (!userId) {
       setHistory([]);
-      setChecklistItems(buildDefaultChecklist());
+      setChecklistItems(defaultChecklist);
       setFavoriteTemplates([]);
       setRecentTemplates([]);
       setInput("");
       setOutput("");
       setDisplayedOutput("");
       setBackupStatus("");
-      setCopyLabel("Copiar");
+      setCopyLabel(t.ai.copy);
       return;
     }
 
@@ -267,22 +253,33 @@ export default function ToolDetail({ tool, onBack }) {
     const savedFavorites = getUserItem(userId, storageKeys.templateFavorites, []);
     const savedRecents = getUserItem(userId, storageKeys.templateRecents, []);
 
+    const nextFavorites = normalizeTemplates(savedFavorites, quickTemplates);
+    const nextRecents = normalizeTemplates(savedRecents, quickTemplates).slice(0, 5);
+
     setHistory(Array.isArray(savedHistory) ? savedHistory.slice(0, 10) : []);
 
     setChecklistItems(
-      Array.isArray(savedChecklist) && savedChecklist.length > 0
-        ? savedChecklist
-        : buildDefaultChecklist(),
+      localizeChecklistItems(savedChecklist, defaultChecklistItems),
     );
 
-    setFavoriteTemplates(Array.isArray(savedFavorites) ? savedFavorites : []);
-    setRecentTemplates(Array.isArray(savedRecents) ? savedRecents.slice(0, 5) : []);
+    setFavoriteTemplates(nextFavorites);
+    setRecentTemplates(nextRecents);
     setInput("");
     setOutput("");
     setDisplayedOutput("");
     setBackupStatus("");
-    setCopyLabel("Copiar");
-  }, [userId]);
+    setCopyLabel(t.ai.copy);
+
+    setUserItem(userId, storageKeys.templateFavorites, nextFavorites);
+    setUserItem(userId, storageKeys.templateRecents, nextRecents);
+  }, [
+    userId,
+    language,
+    defaultChecklist,
+    defaultChecklistItems,
+    quickTemplates,
+    t.ai.copy,
+  ]);
 
   useEffect(() => {
     if (!isAiGenerator || !userId) {
@@ -321,6 +318,7 @@ export default function ToolDetail({ tool, onBack }) {
 
     return () => clearInterval(interval);
   }, [isGenerating]);
+
   async function handleGenerate() {
     if (isGenerating || !input.trim() || !userId) {
       return;
@@ -329,7 +327,7 @@ export default function ToolDetail({ tool, onBack }) {
     setIsGenerating(true);
     setOutput("");
     setDisplayedOutput("");
-    setCopyLabel("Copiar");
+    setCopyLabel(t.ai.copy);
 
     try {
       const generatedOutput = await generateAIContent({
@@ -364,16 +362,16 @@ export default function ToolDetail({ tool, onBack }) {
     try {
       await navigator.clipboard.writeText(text);
 
-      setCopyLabel("Copiado");
+      setCopyLabel(t.ai.copied);
 
       setTimeout(() => {
-        setCopyLabel("Copiar");
+        setCopyLabel(t.ai.copy);
       }, 2000);
     } catch {
-      setCopyLabel("Error");
+      setCopyLabel(t.ai.error);
 
       setTimeout(() => {
-        setCopyLabel("Copiar");
+        setCopyLabel(t.ai.copy);
       }, 2000);
     }
   }
@@ -385,10 +383,10 @@ export default function ToolDetail({ tool, onBack }) {
 
   function handleReuseHistory(item) {
     setInput(item.input);
-    setType(item.type);
+    setType(generatorTypes.includes(item.type) ? item.type : generatorTypes[0]);
     setOutput(item.output || "");
     setDisplayedOutput(item.output || "");
-    setCopyLabel("Copiar");
+    setCopyLabel(t.ai.copy);
 
     setTimeout(() => {
       if (generatorFormRef.current) {
@@ -418,7 +416,11 @@ export default function ToolDetail({ tool, onBack }) {
 
   function handleExportBackup() {
     if (!userId) {
-      setBackupStatus("No hay usuario activo para exportar datos.");
+      setBackupStatus(
+        language === "en"
+          ? "No active user."
+          : "No hay usuario activo.",
+      );
       return;
     }
 
@@ -433,15 +435,23 @@ export default function ToolDetail({ tool, onBack }) {
         exportedAt: new Date().toISOString(),
         aiHistory: history.slice(0, 10),
         checklist: checklistItems,
-        templateFavorites: favoriteTemplates,
-        templateRecents: recentTemplates.slice(0, 5),
+        templateFavorites: normalizeTemplates(favoriteTemplates, quickTemplates),
+        templateRecents: normalizeTemplates(recentTemplates, quickTemplates).slice(0, 5),
       };
 
       downloadJsonFile(`capa8-tools-backup-${userId}-${date}.json`, backupData);
 
-      setBackupStatus("Backup exportado correctamente.");
+      setBackupStatus(
+        language === "en"
+          ? "Backup exported successfully."
+          : "Backup exportado correctamente.",
+      );
     } catch {
-      setBackupStatus("No se pudo exportar el backup.");
+      setBackupStatus(
+        language === "en"
+          ? "Backup could not be exported."
+          : "No se pudo exportar el backup.",
+      );
     }
   }
 
@@ -465,10 +475,18 @@ export default function ToolDetail({ tool, onBack }) {
       const nextHistory = importedData.aiHistory.slice(0, 10);
       const nextChecklist =
         importedData.checklist.length > 0
-          ? importedData.checklist
-          : buildDefaultChecklist();
-      const nextFavorites = importedData.templateFavorites;
-      const nextRecents = importedData.templateRecents.slice(0, 5);
+          ? localizeChecklistItems(importedData.checklist, defaultChecklistItems)
+          : defaultChecklist;
+
+      const nextFavorites = normalizeTemplates(
+        importedData.templateFavorites,
+        quickTemplates,
+      );
+
+      const nextRecents = normalizeTemplates(
+        importedData.templateRecents,
+        quickTemplates,
+      ).slice(0, 5);
 
       setHistory(nextHistory);
       setChecklistItems(nextChecklist);
@@ -480,9 +498,18 @@ export default function ToolDetail({ tool, onBack }) {
       saveFavorites(nextFavorites);
       saveRecents(nextRecents);
 
-      setBackupStatus("Backup importado correctamente.");
+      setBackupStatus(
+        language === "en"
+          ? "Backup imported successfully."
+          : "Backup importado correctamente.",
+      );
     } catch (error) {
-      setBackupStatus(error.message || "No se pudo importar el backup.");
+      setBackupStatus(
+        error.message ||
+          (language === "en"
+            ? "Backup import failed."
+            : "No se pudo importar el backup."),
+      );
     } finally {
       event.target.value = "";
     }
@@ -490,12 +517,18 @@ export default function ToolDetail({ tool, onBack }) {
 
   function handleClearBackupData() {
     if (!userId) {
-      setBackupStatus("No hay usuario activo para limpiar datos.");
+      setBackupStatus(
+        language === "en"
+          ? "No active user."
+          : "No hay usuario activo para limpiar datos.",
+      );
       return;
     }
 
     const confirmed = window.confirm(
-      "¿Seguro que quieres limpiar historial, favoritos, recientes y checklist técnico de este usuario?",
+      language === "en"
+        ? "Are you sure you want to clear this user's local data?"
+        : "¿Seguro que quieres limpiar historial, favoritos, recientes y checklist técnico de este usuario?",
     );
 
     if (!confirmed) {
@@ -508,17 +541,25 @@ export default function ToolDetail({ tool, onBack }) {
     const recentsCleared = removeUserItem(userId, storageKeys.templateRecents);
 
     if (!historyCleared || !checklistCleared || !favoritesCleared || !recentsCleared) {
-      setBackupStatus("No se pudieron limpiar los datos.");
+      setBackupStatus(
+        language === "en"
+          ? "Data could not be cleared."
+          : "No se pudieron limpiar los datos.",
+      );
       return;
     }
 
     setHistory([]);
-    setChecklistItems(buildDefaultChecklist());
+    setChecklistItems(defaultChecklist);
     setFavoriteTemplates([]);
     setRecentTemplates([]);
     setOutput("");
     setDisplayedOutput("");
-    setBackupStatus("Datos locales limpiados correctamente.");
+    setBackupStatus(
+      language === "en"
+        ? "Local data cleared successfully."
+        : "Datos locales limpiados correctamente.",
+    );
   }
 
   function handleToggleChecklistItem(id) {
@@ -565,7 +606,7 @@ export default function ToolDetail({ tool, onBack }) {
   }
 
   function handleResetChecklist() {
-    const nextChecklist = buildDefaultChecklist();
+    const nextChecklist = defaultChecklist;
 
     setChecklistItems(nextChecklist);
     saveChecklist(nextChecklist);
@@ -573,11 +614,12 @@ export default function ToolDetail({ tool, onBack }) {
   }
 
   function handleTemplateRecent(template) {
-    if (!userId) {
+    if (!userId || !isValidTemplate(template)) {
       return;
     }
 
-    const filtered = recentTemplates.filter((item) => item.id !== template.id);
+    const safeRecents = normalizeTemplates(recentTemplates, quickTemplates);
+    const filtered = safeRecents.filter((item) => item.id !== template.id);
     const nextRecents = [template, ...filtered].slice(0, 5);
 
     setRecentTemplates(nextRecents);
@@ -585,28 +627,34 @@ export default function ToolDetail({ tool, onBack }) {
   }
 
   function handleTemplateFavorite(template) {
-    if (!userId) {
+    if (!userId || !isValidTemplate(template)) {
       return;
     }
 
-    const exists = favoriteTemplates.some((item) => item.id === template.id);
+    const safeFavorites = normalizeTemplates(favoriteTemplates, quickTemplates);
+
+    const exists = safeFavorites.some((item) => item.id === template.id);
 
     const nextFavorites = exists
-      ? favoriteTemplates.filter((item) => item.id !== template.id)
-      : [template, ...favoriteTemplates];
+      ? safeFavorites.filter((item) => item.id !== template.id)
+      : [template, ...safeFavorites];
 
     setFavoriteTemplates(nextFavorites);
     saveFavorites(nextFavorites);
   }
 
   async function handleTemplateCopy(template) {
+    if (!isValidTemplate(template)) {
+      return;
+    }
+
     await handleCopy(template.text);
 
     handleTemplateRecent(template);
   }
 
   function handleUseTemplate(template) {
-    if (!userId) {
+    if (!userId || !isValidTemplate(template)) {
       return;
     }
 
@@ -623,7 +671,9 @@ export default function ToolDetail({ tool, onBack }) {
   }
 
   function isTemplateFavorite(id) {
-    return favoriteTemplates.some((item) => item.id === id);
+    const safeFavorites = normalizeTemplates(favoriteTemplates, quickTemplates);
+
+    return safeFavorites.some((item) => item.id === id);
   }
 
   return (
@@ -657,6 +707,7 @@ export default function ToolDetail({ tool, onBack }) {
           handleOpenImportBackup={handleOpenImportBackup}
           handleImportBackup={handleImportBackup}
           handleClearBackupData={handleClearBackupData}
+          onBack={onBack}
         />
       ) : null}
 
@@ -669,6 +720,7 @@ export default function ToolDetail({ tool, onBack }) {
           handleAddChecklistItem={handleAddChecklistItem}
           handleDeleteChecklistItem={handleDeleteChecklistItem}
           handleResetChecklist={handleResetChecklist}
+          onBack={onBack}
         />
       ) : null}
 
@@ -676,19 +728,20 @@ export default function ToolDetail({ tool, onBack }) {
         <QuickTemplatesSection
           templateSearch={templateSearch}
           setTemplateSearch={setTemplateSearch}
-          favoriteTemplates={favoriteTemplates}
-          recentTemplates={recentTemplates}
+          favoriteTemplates={normalizeTemplates(favoriteTemplates, quickTemplates)}
+          recentTemplates={normalizeTemplates(recentTemplates, quickTemplates)}
           filteredTemplates={filteredTemplates}
           handleTemplateCopy={handleTemplateCopy}
           handleUseTemplate={handleUseTemplate}
           handleTemplateFavorite={handleTemplateFavorite}
           isTemplateFavorite={isTemplateFavorite}
+          onBack={onBack}
         />
       ) : null}
 
       {!isAiGenerator && !isTechnicalChecklist && !isQuickTemplates ? (
         <div className="tool-output">
-          <p>Herramienta en construcción.</p>
+          <p>{tool.description}</p>
         </div>
       ) : null}
     </section>

@@ -1,5 +1,7 @@
 // src/components/tool-detail/AIGeneratorSection.jsx
 
+import useLanguage from "../../hooks/useLanguage";
+
 import HistorySection from "./HistorySection";
 import BackupToolsSection from "./BackupToolsSection";
 
@@ -29,7 +31,13 @@ export default function AIGeneratorSection({
   handleOpenImportBackup,
   handleImportBackup,
   handleClearBackupData,
+  onBack,
 }) {
+  const { t, language } = useLanguage();
+
+  const backHomeLabel =
+    language === "en" ? "← Back to Home" : "← Volver al inicio";
+
   return (
     <div
       className="tool-workspace"
@@ -42,7 +50,7 @@ export default function AIGeneratorSection({
         onChange={(event) =>
           setInput(event.target.value)
         }
-        placeholder="Escribe aquí tu idea o contexto..."
+        placeholder={t.ai.placeholder}
         rows="6"
       />
 
@@ -54,7 +62,7 @@ export default function AIGeneratorSection({
           paddingLeft: "4px",
         }}
       >
-        {input.length} caracteres
+        {input.length} {t.ai.characters}
       </div>
 
       <select
@@ -83,14 +91,14 @@ export default function AIGeneratorSection({
         }
       >
         {isGenerating
-          ? `Generando${loadingDots}`
-          : "Generar"}
+          ? `${t.ai.generating}${loadingDots}`
+          : t.ai.generate}
       </button>
 
       <div className="tool-output">
         <p>
           {displayedOutput ||
-            "La IA generará una respuesta basada en tu contexto."}
+            t.ai.emptyOutput}
         </p>
       </div>
 
@@ -116,7 +124,7 @@ export default function AIGeneratorSection({
           onClick={handleClearOutput}
           disabled={!output}
         >
-          Limpiar
+          {t.ai.clear}
         </button>
       </div>
 
@@ -136,6 +144,31 @@ export default function AIGeneratorSection({
         handleImportBackup={handleImportBackup}
         handleClearBackupData={handleClearBackupData}
       />
+
+      <div
+        style={{
+          marginTop: "30px",
+          paddingTop: "4px",
+        }}
+      >
+        <button
+          className="ghost-btn tool-action-btn"
+          type="button"
+          onClick={onBack}
+          style={{
+            width: "100%",
+            minHeight: "52px",
+            borderRadius: "18px",
+            border: "1px solid rgba(0,255,170,.18)",
+            background:
+              "linear-gradient(180deg, rgba(8,32,26,.74), rgba(0,0,0,.70))",
+            boxShadow:
+              "0 18px 42px rgba(0,0,0,.38), inset 0 0 22px rgba(0,255,170,.04), 0 0 24px rgba(0,255,170,.06)",
+          }}
+        >
+          {backHomeLabel}
+        </button>
+      </div>
     </div>
   );
 }

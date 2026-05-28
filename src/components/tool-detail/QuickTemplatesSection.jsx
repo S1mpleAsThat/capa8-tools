@@ -1,5 +1,18 @@
 // src/components/tool-detail/QuickTemplatesSection.jsx
 
+import useLanguage from "../../hooks/useLanguage";
+
+function isValidTemplate(template) {
+  return (
+    template &&
+    typeof template === "object" &&
+    typeof template.id === "string" &&
+    typeof template.category === "string" &&
+    typeof template.title === "string" &&
+    typeof template.text === "string"
+  );
+}
+
 export default function QuickTemplatesSection({
   templateSearch,
   setTemplateSearch,
@@ -10,8 +23,32 @@ export default function QuickTemplatesSection({
   handleUseTemplate,
   handleTemplateFavorite,
   isTemplateFavorite,
+  onBack,
 }) {
+  const { t, language } = useLanguage();
+
+  const backHomeLabel =
+    language === "en" ? "← Back to Home" : "← Volver al inicio";
+
+  const safeFavorites = Array.isArray(favoriteTemplates)
+    ? favoriteTemplates.filter(isValidTemplate)
+    : [];
+
+  const safeRecents = Array.isArray(recentTemplates)
+    ? recentTemplates.filter(isValidTemplate)
+    : [];
+
+  const safeFilteredTemplates = Array.isArray(filteredTemplates)
+    ? filteredTemplates.filter(isValidTemplate)
+    : [];
+
   function renderTemplateCard(template) {
+    if (!isValidTemplate(template)) {
+      return null;
+    }
+
+    const favoriteActive = isTemplateFavorite(template.id);
+
     return (
       <article
         key={template.id}
@@ -22,8 +59,7 @@ export default function QuickTemplatesSection({
           padding: "22px 24px",
           background:
             "linear-gradient(180deg, rgba(6,22,18,.86), rgba(0,0,0,.78))",
-          border:
-            "1px solid rgba(0,255,170,.14)",
+          border: "1px solid rgba(0,255,170,.14)",
           boxShadow:
             "0 18px 42px rgba(0,0,0,.36), inset 0 0 24px rgba(0,255,170,.035)",
         }}
@@ -88,58 +124,44 @@ export default function QuickTemplatesSection({
             <button
               className="ghost-btn"
               type="button"
-              onClick={() =>
-                handleTemplateCopy(template)
-              }
+              onClick={() => handleTemplateCopy(template)}
               style={{
                 minHeight: "40px",
                 fontSize: "12px",
               }}
             >
-              Copiar
+              {t.templates.copy}
             </button>
 
             <button
               className="ghost-btn"
               type="button"
-              onClick={() =>
-                handleUseTemplate(template)
-              }
+              onClick={() => handleUseTemplate(template)}
               style={{
                 minHeight: "40px",
                 fontSize: "12px",
               }}
             >
-              Usar en IA
+              {t.templates.useInAI}
             </button>
 
             <button
               className="ghost-btn"
               type="button"
-              onClick={() =>
-                handleTemplateFavorite(
-                  template,
-                )
-              }
+              onClick={() => handleTemplateFavorite(template)}
               style={{
                 minHeight: "40px",
                 fontSize: "12px",
                 gridColumn: "1 / -1",
-                border: isTemplateFavorite(
-                  template.id,
-                )
+                border: favoriteActive
                   ? "1px solid rgba(24,255,173,.5)"
                   : undefined,
-                color: isTemplateFavorite(
-                  template.id,
-                )
-                  ? "#18ffad"
-                  : undefined,
+                color: favoriteActive ? "#18ffad" : undefined,
               }}
             >
-              {isTemplateFavorite(template.id)
-                ? "Favorito activo"
-                : "Agregar favorito"}
+              {favoriteActive
+                ? t.templates.activeFavorite
+                : t.templates.addFavorite}
             </button>
           </div>
         </div>
@@ -153,18 +175,14 @@ export default function QuickTemplatesSection({
         className="tool-input"
         type="text"
         value={templateSearch}
-        onChange={(event) =>
-          setTemplateSearch(
-            event.target.value,
-          )
-        }
-        placeholder="Buscar plantilla..."
+        onChange={(event) => setTemplateSearch(event.target.value)}
+        placeholder={t.templates.search}
         style={{
           minHeight: "56px",
         }}
       />
 
-      {favoriteTemplates.length > 0 ? (
+      {safeFavorites.length > 0 ? (
         <div
           className="tools-grid"
           style={{
@@ -178,18 +196,16 @@ export default function QuickTemplatesSection({
               marginBottom: 0,
             }}
           >
-            <p>FAVORITOS</p>
+            <p>{t.templates.favoritesEyebrow}</p>
 
-            <h2>Plantillas favoritas</h2>
+            <h2>{t.templates.favoritesTitle}</h2>
           </div>
 
-          {favoriteTemplates.map((template) =>
-            renderTemplateCard(template),
-          )}
+          {safeFavorites.map((template) => renderTemplateCard(template))}
         </div>
       ) : null}
 
-      {recentTemplates.length > 0 ? (
+      {safeRecents.length > 0 ? (
         <div
           className="tools-grid"
           style={{
@@ -204,14 +220,12 @@ export default function QuickTemplatesSection({
               marginBottom: 0,
             }}
           >
-            <p>RECIENTES</p>
+            <p>{t.templates.recentsEyebrow}</p>
 
-            <h2>Usadas recientemente</h2>
+            <h2>{t.templates.recentsTitle}</h2>
           </div>
 
-          {recentTemplates.map((template) =>
-            renderTemplateCard(template),
-          )}
+          {safeRecents.map((template) => renderTemplateCard(template))}
         </div>
       ) : null}
 
@@ -229,14 +243,39 @@ export default function QuickTemplatesSection({
             marginBottom: 0,
           }}
         >
-          <p>PLANTILLAS</p>
+          <p>{t.templates.libraryEyebrow}</p>
 
-          <h2>Biblioteca rápida</h2>
+          <h2>{t.templates.libraryTitle}</h2>
         </div>
 
-        {filteredTemplates.map((template) =>
+        {safeFilteredTemplates.map((template) =>
           renderTemplateCard(template),
         )}
+      </div>
+
+      <div
+        style={{
+          marginTop: "30px",
+          paddingTop: "4px",
+        }}
+      >
+        <button
+          className="ghost-btn tool-action-btn"
+          type="button"
+          onClick={onBack}
+          style={{
+            width: "100%",
+            minHeight: "52px",
+            borderRadius: "18px",
+            border: "1px solid rgba(0,255,170,.18)",
+            background:
+              "linear-gradient(180deg, rgba(8,32,26,.74), rgba(0,0,0,.70))",
+            boxShadow:
+              "0 18px 42px rgba(0,0,0,.38), inset 0 0 22px rgba(0,255,170,.04), 0 0 24px rgba(0,255,170,.06)",
+          }}
+        >
+          {backHomeLabel}
+        </button>
       </div>
     </div>
   );

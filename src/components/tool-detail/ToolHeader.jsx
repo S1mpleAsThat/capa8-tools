@@ -1,13 +1,18 @@
 // src/components/tool-detail/ToolHeader.jsx
 
+import { useLanguageContext } from "../../context/LanguageContext";
+
 export default function ToolHeader({
   tool,
   onBack,
 }) {
+  const { t } =
+    useLanguageContext();
+
   return (
     <div className="hero-content">
       <p className="eyebrow">
-        HERRAMIENTA
+        {t.toolEyebrow}
       </p>
 
       <h1>{tool.title}</h1>
@@ -22,7 +27,7 @@ export default function ToolHeader({
           type="button"
           onClick={onBack}
         >
-          Volver
+          {t.back}
         </button>
       </div>
     </div>
