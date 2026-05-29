@@ -4,15 +4,14 @@ import { useEffect, useMemo, useState } from "react";
 
 import { checklistTemplates } from "../../data/checklistTemplates";
 import useLanguage from "../../hooks/useLanguage";
+
 import {
   getUserItem,
   setUserItem,
 } from "../../services/storage/userStorage";
 
-import {
-  buildIncidentPayload,
-  generateChecklistAIResponse,
-} from "../../services/checklistAIService";
+import { generateChecklistAIResponse } from "../../services/checklistAIService";
+import { trackAdAction } from "../../services/ads/adService";
 
 const CHECKLIST_AI_KEY = "technical-checklist-ai";
 const CHECKLIST_INCIDENTS_KEY = "technical-checklist-incidents";
@@ -86,17 +85,17 @@ function normalizeIncident(incident) {
         ? incident.aiReport
         : "";
 
-  const checklistItems = normalizeChecklistItems(
+  const checklist = normalizeChecklistItems(
     incident.checklistItems || incident.checklist,
   );
 
   const completedItems = Array.isArray(incident.completedItems)
     ? normalizeChecklistItems(incident.completedItems)
-    : checklistItems.filter((item) => item.completed);
+    : checklist.filter((item) => item.completed);
 
   const pendingItems = Array.isArray(incident.pendingItems)
     ? normalizeChecklistItems(incident.pendingItems)
-    : checklistItems.filter((item) => !item.completed);
+    : checklist.filter((item) => !item.completed);
 
   return {
     id:
@@ -115,8 +114,8 @@ function normalizeIncident(incident) {
       typeof incident.createdAt === "string"
         ? incident.createdAt
         : new Date().toISOString(),
-    checklistItems,
-    checklist: checklistItems,
+    checklist,
+    checklistItems: checklist,
     completedItems,
     pendingItems,
     aiAction:
@@ -137,7 +136,7 @@ function normalizeIncident(incident) {
     status:
       typeof incident.status === "string" && incident.status.trim()
         ? incident.status
-        : buildIncidentStatus(checklistItems),
+        : buildIncidentStatus(checklist),
   };
 }
 
@@ -230,7 +229,6 @@ export default function TechnicalChecklistSection({
   const [exportStatus, setExportStatus] = useState("");
   const [incidentStatus, setIncidentStatus] = useState("");
   const [incidentHistory, setIncidentHistory] = useState([]);
-
   const selectedTemplate = useMemo(
     () =>
       checklistTemplates.find((template) => template.id === selectedTemplateId) ||
@@ -240,7 +238,8 @@ export default function TechnicalChecklistSection({
 
   const backHomeLabel =
     language === "en" ? "← Back to Home" : "← Volver al inicio";
-    const labels =
+
+  const labels =
     language === "en"
       ? {
           templatesEyebrow: "TECHNICAL TEMPLATES",
@@ -418,28 +417,32 @@ export default function TechnicalChecklistSection({
     saveAIState(nextState);
   }
 
-  function saveIncidentFromResult({
-    action,
-    result,
-  }) {
+  function saveIncidentFromResult({ action, result }) {
     if (!userId || !result) {
       return;
     }
 
-    const incident = buildIncidentPayload({
-      action,
-      aiResult: result,
-      checklistItems: safeChecklistItems,
-      template: selectedTemplate,
-    });
-
-    const normalizedIncident = normalizeIncident({
-      ...incident,
+    const incident = {
+      id: `incident-${Date.now()}`,
       title:
         selectedTemplate?.title ||
         (language === "en" ? "Technical checklist" : "Checklist técnico"),
       category: selectedTemplate?.category || "General",
-    });
+      createdAt: new Date().toISOString(),
+      checklist: safeChecklistItems,
+      checklistItems: safeChecklistItems,
+      completedItems: safeChecklistItems.filter((item) => item.completed),
+      pendingItems: safeChecklistItems.filter((item) => !item.completed),
+      aiAction: action || "analyze",
+      aiResult: result,
+      aiReport: action === "report" ? result : aiReport,
+      aiAnalysis,
+      aiSolution,
+      summary: buildSummary(result),
+      status: buildIncidentStatus(safeChecklistItems),
+    };
+
+    const normalizedIncident = normalizeIncident(incident);
 
     if (!normalizedIncident) {
       return;
@@ -493,6 +496,10 @@ export default function TechnicalChecklistSection({
         userName,
       });
 
+      if (action === "solution" || action === "report") {
+        trackAdAction(`checklist-${action}`);
+      }
+
       const createdAt = new Date().toISOString();
 
       const nextState = {
@@ -532,7 +539,6 @@ export default function TechnicalChecklistSection({
       setLoadingReport(false);
     }
   }
-
   function handleTemplateLoad() {
     if (!selectedTemplate || !handleLoadChecklistTemplate) {
       return;

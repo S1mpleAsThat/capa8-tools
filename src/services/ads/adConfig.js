@@ -1,25 +1,30 @@
 // src/services/ads/adConfig.js
 
-const env = import.meta.env || {};
-
 export const ADS_ENABLED =
-  env.VITE_ADS_ENABLED === "true";
+  import.meta.env.VITE_ADS_ENABLED === "true";
 
-export const ADS_MODE =
-  env.MODE === "production"
-    ? "production"
-    : "development";
+export const ADSENSE_CLIENT_ID =
+  import.meta.env.VITE_ADSENSE_CLIENT_ID || "";
 
-export const ADS_BANNER_ID =
-  env.VITE_ADS_BANNER_ID || "";
+export const BANNER_SLOT =
+  import.meta.env.VITE_ADSENSE_BANNER_SLOT || "";
 
-export const ADS_INTERSTITIAL_ID =
-  env.VITE_ADS_INTERSTITIAL_ID || "";
+export const ACTION_SLOT =
+  import.meta.env.VITE_ADSENSE_ACTION_SLOT || "";
 
-export const ADS_ACTION_FREQUENCY = Number(
-  env.VITE_ADS_ACTION_FREQUENCY || 3,
-);
+export const ACTION_FREQUENCY =
+  Number(
+    import.meta.env.VITE_ADS_ACTION_FREQUENCY || 3,
+  );
 
-export function shouldUseAdPlaceholders() {
-  return ADS_MODE !== "production" || !ADS_ENABLED;
-}
+export const IS_LOCALHOST =
+  typeof window !== "undefined" &&
+  (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+  );
+
+export const IS_PRODUCTION_ADS =
+  ADS_ENABLED &&
+  Boolean(ADSENSE_CLIENT_ID) &&
+  !IS_LOCALHOST;

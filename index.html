@@ -2,6 +2,7 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
+
     <meta
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
@@ -9,22 +10,89 @@
 
     <title>CAPA 8 TOOLS</title>
 
-    <meta name="theme-color" content="#020403" />
-    <meta name="description" content="Herramientas rápidas para técnicos y creadores." />
+    <meta
+      name="theme-color"
+      content="#020403"
+    />
 
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="CAPA8" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta
+      name="description"
+      content="Herramientas rápidas para técnicos y creadores."
+    />
 
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <link rel="icon" type="image/png" href="/icons/icon-192.png" />
-    <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <meta
+      name="mobile-web-app-capable"
+      content="yes"
+    />
+
+    <meta
+      name="apple-mobile-web-app-capable"
+      content="yes"
+    />
+
+    <meta
+      name="apple-mobile-web-app-title"
+      content="CAPA8"
+    />
+
+    <meta
+      name="apple-mobile-web-app-status-bar-style"
+      content="black-translucent"
+    />
+
+    <link
+      rel="manifest"
+      href="/manifest.webmanifest"
+    />
+
+    <link
+      rel="icon"
+      type="image/png"
+      href="/icons/icon-192.png"
+    />
+
+    <link
+      rel="apple-touch-icon"
+      href="/icons/icon-192.png"
+    />
   </head>
 
   <body>
     <div id="root"></div>
 
-    <script type="module" src="/src/main.jsx"></script>
+    <script type="module">
+      const adsEnabled =
+        import.meta.env.VITE_ADS_ENABLED === "true";
+
+      const clientId =
+        import.meta.env.VITE_ADSENSE_CLIENT_ID;
+
+      const isLocalhost =
+        window.location.hostname === "localhost" ||
+        window.location.hostname === "127.0.0.1";
+
+      if (
+        adsEnabled &&
+        clientId &&
+        !isLocalhost
+      ) {
+        const script =
+          document.createElement("script");
+
+        script.async = true;
+
+        script.crossOrigin = "anonymous";
+
+        script.src =
+          `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${clientId}`;
+
+        document.head.appendChild(script);
+      }
+    </script>
+
+    <script
+      type="module"
+      src="/src/main.jsx"
+    ></script>
   </body>
 </html>

@@ -3,109 +3,90 @@
 import { useEffect, useState } from "react";
 
 import {
-  ADS_ENABLED,
-  ADS_INTERSTITIAL_ID,
-  shouldUseAdPlaceholders,
-} from "../../services/ads/adConfig";
+  ACTION_SLOT,
+  shouldShowAds,
+  subscribeInterstitialAd,
+} from "../../services/ads/adService";
 
-import { subscribeInterstitialAd } from "../../services/ads/adService";
+import GoogleAdSlot from "./GoogleAdSlot";
 
 export default function InterstitialAdHost() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     return subscribeInterstitialAd(() => {
-      if (!ADS_ENABLED && !shouldUseAdPlaceholders()) {
-        return;
-      }
-
       setVisible(true);
     });
   }, []);
 
-  if (!visible) {
+  if (!shouldShowAds() || !visible) {
     return null;
   }
 
   return (
     <div
-      role="dialog"
-      aria-modal="true"
-      aria-label="Advertisement"
       style={{
         position: "fixed",
         inset: 0,
-        zIndex: 9999,
-        display: "grid",
-        placeItems: "center",
-        padding: "22px",
+        zIndex: 999,
         background: "rgba(0,0,0,.72)",
-        backdropFilter: "blur(12px)",
+        backdropFilter: "blur(8px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "20px",
       }}
     >
       <div
         style={{
           width: "100%",
-          maxWidth: "360px",
-          borderRadius: "26px",
-          border: "1px solid rgba(0,255,170,.18)",
+          maxWidth: "420px",
+          borderRadius: "28px",
+          padding: "18px",
+          border: "1px solid rgba(0,255,170,.12)",
           background:
-            "linear-gradient(180deg, rgba(8,28,23,.96), rgba(0,0,0,.94))",
-          boxShadow:
-            "0 24px 80px rgba(0,0,0,.62), 0 0 34px rgba(0,255,170,.08)",
-          padding: "22px",
-          textAlign: "center",
-          color: "#ffffff",
+            "linear-gradient(180deg, rgba(5,18,14,.96), rgba(0,0,0,.94))",
+          boxShadow: "0 24px 80px rgba(0,0,0,.55)",
         }}
       >
-        <p
+        <div
           style={{
-            color: "#18ffad",
-            fontSize: "11px",
-            fontWeight: 900,
-            letterSpacing: "1.4px",
-            marginBottom: "10px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: "14px",
           }}
         >
-          CAPA 8 TOOLS
-        </p>
+          <p
+            style={{
+              color: "#18ffad",
+              fontSize: "12px",
+              fontWeight: 800,
+              letterSpacing: "1px",
+            }}
+          >
+            SPONSORED
+          </p>
 
-        <h3
-          style={{
-            fontSize: "20px",
-            lineHeight: 1.15,
-            marginBottom: "12px",
-          }}
-        >
-          {shouldUseAdPlaceholders()
-            ? "Ad Placeholder"
-            : "Sponsored"}
-        </h3>
+          <button
+            type="button"
+            onClick={() => setVisible(false)}
+            style={{
+              border: "none",
+              background: "none",
+              color: "rgba(255,255,255,.62)",
+              cursor: "pointer",
+              fontSize: "18px",
+            }}
+          >
+            ×
+          </button>
+        </div>
 
-        <p
-          style={{
-            color: "rgba(255,255,255,.64)",
-            fontSize: "13px",
-            lineHeight: 1.5,
-            marginBottom: "18px",
-          }}
-        >
-          {shouldUseAdPlaceholders()
-            ? "Interstitial test preview for development mode."
-            : `AdMob Interstitial ${ADS_INTERSTITIAL_ID}`}
-        </p>
-
-        <button
-          className="ghost-btn"
-          type="button"
-          onClick={() => setVisible(false)}
-          style={{
-            width: "100%",
-            minHeight: "44px",
-          }}
-        >
-          Continue
-        </button>
+        <GoogleAdSlot
+          slot={ACTION_SLOT}
+          minHeight={250}
+        />
       </div>
     </div>
   );

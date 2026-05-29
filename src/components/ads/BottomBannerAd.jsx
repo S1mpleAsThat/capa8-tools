@@ -1,44 +1,47 @@
 // src/components/ads/BottomBannerAd.jsx
 
 import {
-  ADS_BANNER_ID,
-  ADS_ENABLED,
-  shouldUseAdPlaceholders,
-} from "../../services/ads/adConfig";
+  BANNER_SLOT,
+  shouldShowAds,
+} from "../../services/ads/adService";
+
+import GoogleAdSlot from "./GoogleAdSlot";
 
 export default function BottomBannerAd() {
-  if (!ADS_ENABLED && !shouldUseAdPlaceholders()) {
+  if (!shouldShowAds()) {
     return null;
   }
 
   return (
     <div
-      aria-label="Advertisement"
       style={{
-        width: "calc(100% - 32px)",
-        maxWidth: "440px",
-        minHeight: "46px",
-        margin: "18px auto 26px",
-        borderRadius: "18px",
-        border: "1px solid rgba(0,255,170,.12)",
-        background:
-          "linear-gradient(180deg, rgba(5,18,15,.82), rgba(0,0,0,.78))",
-        boxShadow:
-          "0 18px 42px rgba(0,0,0,.34), inset 0 0 22px rgba(0,255,170,.035)",
-        display: "grid",
-        placeItems: "center",
-        color: "rgba(255,255,255,.46)",
-        fontSize: "11px",
-        fontWeight: 800,
-        letterSpacing: "1px",
-        textTransform: "uppercase",
-        position: "relative",
-        zIndex: 5,
+        position: "fixed",
+        left: "50%",
+        bottom: "10px",
+        transform: "translateX(-50%)",
+        width: "calc(100% - 24px)",
+        maxWidth: "560px",
+        zIndex: 60,
+        pointerEvents: "none",
       }}
     >
-      {shouldUseAdPlaceholders()
-        ? "Ad Placeholder"
-        : `AdMob Banner ${ADS_BANNER_ID}`}
+      <div
+        style={{
+          pointerEvents: "auto",
+          backdropFilter: "blur(12px)",
+          background:
+            "linear-gradient(180deg, rgba(5,16,14,.88), rgba(0,0,0,.82))",
+          border: "1px solid rgba(0,255,170,.10)",
+          borderRadius: "22px",
+          padding: "10px",
+          boxShadow: "0 12px 40px rgba(0,0,0,.34)",
+        }}
+      >
+        <GoogleAdSlot
+          slot={BANNER_SLOT}
+          minHeight={72}
+        />
+      </div>
     </div>
   );
 }

@@ -1,34 +1,36 @@
 // src/services/ads/adService.js
 
 import {
-  ADS_ACTION_FREQUENCY,
+  ACTION_FREQUENCY,
+  ACTION_SLOT,
   ADS_ENABLED,
+  BANNER_SLOT,
 } from "./adConfig";
 
 const AD_ACTION_COUNT_KEY = "capa8-ads-action-count";
-const INTERSTITIAL_EVENT = "capa8-show-interstitial-ad";
+const INTERSTITIAL_EVENT = "capa8-interstitial-ad";
 
-function getActionCount() {
+export { ACTION_SLOT, BANNER_SLOT };
+
+function getStoredActionCount() {
   try {
-    const value = Number(
-      sessionStorage.getItem(AD_ACTION_COUNT_KEY),
-    );
-
+    const value = Number(sessionStorage.getItem(AD_ACTION_COUNT_KEY));
     return Number.isFinite(value) ? value : 0;
   } catch {
     return 0;
   }
 }
 
-function setActionCount(count) {
+function setStoredActionCount(count) {
   try {
-    sessionStorage.setItem(
-      AD_ACTION_COUNT_KEY,
-      String(count),
-    );
+    sessionStorage.setItem(AD_ACTION_COUNT_KEY, String(count));
   } catch {
     return;
   }
+}
+
+export function shouldShowAds() {
+  return ADS_ENABLED;
 }
 
 export function requestInterstitialAd(reason = "action") {
@@ -51,14 +53,10 @@ export function trackAdAction(reason = "action") {
     return false;
   }
 
-  const nextCount = getActionCount() + 1;
+  const nextCount = getStoredActionCount() + 1;
+  setStoredActionCount(nextCount);
 
-  setActionCount(nextCount);
-
-  if (
-    ADS_ACTION_FREQUENCY > 0 &&
-    nextCount % ADS_ACTION_FREQUENCY === 0
-  ) {
+  if (ACTION_FREQUENCY > 0 && nextCount % ACTION_FREQUENCY === 0) {
     requestInterstitialAd(reason);
     return true;
   }

@@ -29,21 +29,43 @@ import {
 import AppTopBar from "./components/AppTopBar";
 import HeroSection from "./components/HeroSection";
 import ToolsSection from "./components/ToolsSection";
+
 import BottomBannerAd from "./components/ads/BottomBannerAd";
 import InterstitialAdHost from "./components/ads/InterstitialAdHost";
 
-const ToolDetail = lazy(() => import("./components/ToolDetail"));
-const WelcomePage = lazy(() => import("./pages/WelcomePage"));
-const LoginPage = lazy(() => import("./pages/LoginPage"));
-const LanguageGatePage = lazy(() => import("./pages/LanguageGatePage"));
+const ToolDetail = lazy(() =>
+  import("./components/ToolDetail"),
+);
 
-const ACTIVE_TOOL_KEY = "active-tool";
-const PUBLIC_LANGUAGE_KEY = "capa8-public-language";
+const WelcomePage = lazy(() =>
+  import("./pages/WelcomePage"),
+);
+
+const LoginPage = lazy(() =>
+  import("./pages/LoginPage"),
+);
+
+const LanguageGatePage = lazy(() =>
+  import("./pages/LanguageGatePage"),
+);
+
+const ACTIVE_TOOL_KEY =
+  "active-tool";
+
+const PUBLIC_LANGUAGE_KEY =
+  "capa8-public-language";
 
 function hasPublicLanguage() {
   try {
-    const savedLanguage = localStorage.getItem(PUBLIC_LANGUAGE_KEY);
-    return savedLanguage === "es" || savedLanguage === "en";
+    const savedLanguage =
+      localStorage.getItem(
+        PUBLIC_LANGUAGE_KEY,
+      );
+
+    return (
+      savedLanguage === "es" ||
+      savedLanguage === "en"
+    );
   } catch {
     return false;
   }
@@ -52,14 +74,36 @@ function hasPublicLanguage() {
 function LoadingScreen() {
   return (
     <main className="app">
-      <img className="app-bg" src={heroBg} alt="" />
-      <img className="fx-glow-corner" src={glowCorner} alt="" />
-      <img className="fx-particles" src={particlesOverlay} alt="" />
-      <img className="fx-scanlines" src={scanlines} alt="" />
+      <img
+        className="app-bg"
+        src={heroBg}
+        alt=""
+      />
+
+      <img
+        className="fx-glow-corner"
+        src={glowCorner}
+        alt=""
+      />
+
+      <img
+        className="fx-particles"
+        src={particlesOverlay}
+        alt=""
+      />
+
+      <img
+        className="fx-scanlines"
+        src={scanlines}
+        alt=""
+      />
 
       <section className="hero">
         <div className="hero-content">
-          <p className="eyebrow">CAPA 8 TOOLS</p>
+          <p className="eyebrow">
+            CAPA 8 TOOLS
+          </p>
+
           <h1>Cargando...</h1>
         </div>
       </section>
@@ -68,11 +112,22 @@ function LoadingScreen() {
 }
 
 function AppContent() {
-  const [selectedToolId, setSelectedToolId] = useState(null);
-  const [hasFinishedOnboarding, setHasFinishedOnboarding] =
-    useState(false);
-  const [hasSelectedPublicLanguage, setHasSelectedPublicLanguage] =
-    useState(() => hasPublicLanguage());
+  const [
+    selectedToolId,
+    setSelectedToolId,
+  ] = useState(null);
+
+  const [
+    hasFinishedOnboarding,
+    setHasFinishedOnboarding,
+  ] = useState(false);
+
+  const [
+    hasSelectedPublicLanguage,
+    setHasSelectedPublicLanguage,
+  ] = useState(() =>
+    hasPublicLanguage(),
+  );
 
   const {
     loading,
@@ -82,58 +137,102 @@ function AppContent() {
 
   const { t } = useLanguage();
 
-  const availableTools = useMemo(
-    () => [
-      {
-        id: "ai-generator",
-        title: t.tools.ai.title,
-        description: t.tools.ai.description,
-      },
-      {
-        id: "technical-checklist",
-        title: t.tools.checklist.title,
-        description: t.tools.checklist.description,
-      },
-      {
-        id: "quick-templates",
-        title: t.tools.templates.title,
-        description: t.tools.templates.description,
-      },
-    ],
-    [t],
-  );
-
-  const selectedTool = useMemo(() => {
-    if (!selectedToolId) {
-      return null;
-    }
-
-    return (
-      availableTools.find((tool) => tool.id === selectedToolId) ||
-      null
+  const availableTools =
+    useMemo(
+      () => [
+        {
+          id: "ai-generator",
+          title:
+            t.tools.ai.title,
+          description:
+            t.tools.ai
+              .description,
+        },
+        {
+          id: "technical-checklist",
+          title:
+            t.tools.checklist
+              .title,
+          description:
+            t.tools.checklist
+              .description,
+        },
+        {
+          id: "quick-templates",
+          title:
+            t.tools.templates
+              .title,
+          description:
+            t.tools.templates
+              .description,
+        },
+      ],
+      [t],
     );
-  }, [availableTools, selectedToolId]);
+
+  const selectedTool =
+    useMemo(() => {
+      if (!selectedToolId) {
+        return null;
+      }
+
+      return (
+        availableTools.find(
+          (tool) =>
+            tool.id ===
+            selectedToolId,
+        ) || null
+      );
+    }, [
+      availableTools,
+      selectedToolId,
+    ]);
 
   useEffect(() => {
-    if (!isAuthenticated || !user?.id) {
+    if (
+      !isAuthenticated ||
+      !user?.id
+    ) {
       setSelectedToolId(null);
       return;
     }
 
-    const savedToolId = getUserItem(user.id, ACTIVE_TOOL_KEY, "");
+    const savedToolId =
+      getUserItem(
+        user.id,
+        ACTIVE_TOOL_KEY,
+        "",
+      );
 
-    const exists = availableTools.some(
-      (tool) => tool.id === savedToolId,
+    const exists =
+      availableTools.some(
+        (tool) =>
+          tool.id ===
+          savedToolId,
+      );
+
+    setSelectedToolId(
+      exists
+        ? savedToolId
+        : null,
     );
+  }, [
+    isAuthenticated,
+    user?.id,
+    availableTools,
+  ]);
 
-    setSelectedToolId(exists ? savedToolId : null);
-  }, [isAuthenticated, user?.id, availableTools]);
-
-  function handleSelectTool(tool) {
+  function handleSelectTool(
+    tool,
+  ) {
     setSelectedToolId(tool.id);
 
     if (user?.id) {
-      setUserItem(user.id, ACTIVE_TOOL_KEY, tool.id);
+      setUserItem(
+        user.id,
+        ACTIVE_TOOL_KEY,
+        tool.id,
+      );
     }
   }
 
@@ -141,31 +240,54 @@ function AppContent() {
     setSelectedToolId(null);
 
     if (user?.id) {
-      removeUserItem(user.id, ACTIVE_TOOL_KEY);
+      removeUserItem(
+        user.id,
+        ACTIVE_TOOL_KEY,
+      );
     }
   }
 
   function handleLanguageGateFinish() {
-    setHasSelectedPublicLanguage(true);
+    setHasSelectedPublicLanguage(
+      true,
+    );
   }
 
   if (loading) {
     return <LoadingScreen />;
   }
 
-  if (!isAuthenticated && !hasSelectedPublicLanguage) {
+  if (
+    !isAuthenticated &&
+    !hasSelectedPublicLanguage
+  ) {
     return (
-      <Suspense fallback={<LoadingScreen />}>
-        <LanguageGatePage onFinish={handleLanguageGateFinish} />
+      <Suspense
+        fallback={<LoadingScreen />}
+      >
+        <LanguageGatePage
+          onFinish={
+            handleLanguageGateFinish
+          }
+        />
       </Suspense>
     );
   }
 
-  if (!isAuthenticated && !hasFinishedOnboarding) {
+  if (
+    !isAuthenticated &&
+    !hasFinishedOnboarding
+  ) {
     return (
-      <Suspense fallback={<LoadingScreen />}>
+      <Suspense
+        fallback={<LoadingScreen />}
+      >
         <WelcomePage
-          onFinish={() => setHasFinishedOnboarding(true)}
+          onFinish={() =>
+            setHasFinishedOnboarding(
+              true,
+            )
+          }
         />
       </Suspense>
     );
@@ -173,7 +295,9 @@ function AppContent() {
 
   if (!isAuthenticated) {
     return (
-      <Suspense fallback={<LoadingScreen />}>
+      <Suspense
+        fallback={<LoadingScreen />}
+      >
         <LoginPage />
       </Suspense>
     );
@@ -181,28 +305,63 @@ function AppContent() {
 
   return (
     <main className="app">
-      <img className="app-bg" src={heroBg} alt="" />
-      <img className="fx-glow-corner" src={glowCorner} alt="" />
-      <img className="fx-particles" src={particlesOverlay} alt="" />
-      <img className="fx-scanlines" src={scanlines} alt="" />
+      <img
+        className="app-bg"
+        src={heroBg}
+        alt=""
+      />
+
+      <img
+        className="fx-glow-corner"
+        src={glowCorner}
+        alt=""
+      />
+
+      <img
+        className="fx-particles"
+        src={particlesOverlay}
+        alt=""
+      />
+
+      <img
+        className="fx-scanlines"
+        src={scanlines}
+        alt=""
+      />
 
       <InterstitialAdHost />
 
       {selectedTool ? (
         <>
-          <AppTopBar onBack={handleBackHome} />
+          <AppTopBar
+            onBack={
+              handleBackHome
+            }
+          />
 
-          <Suspense fallback={<LoadingScreen />}>
+          <Suspense
+            fallback={
+              <LoadingScreen />
+            }
+          >
             <ToolDetail
               tool={selectedTool}
-              onBack={handleBackHome}
+              onBack={
+                handleBackHome
+              }
             />
           </Suspense>
         </>
       ) : (
         <>
           <HeroSection />
-          <ToolsSection onSelectTool={handleSelectTool} />
+
+          <ToolsSection
+            onSelectTool={
+              handleSelectTool
+            }
+          />
+
           <BottomBannerAd />
         </>
       )}
