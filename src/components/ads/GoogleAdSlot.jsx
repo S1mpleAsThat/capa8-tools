@@ -1,84 +1,72 @@
 // src/components/ads/GoogleAdSlot.jsx
 
-import {
-  useEffect,
-  useRef,
-} from "react";
+import { useEffect, useRef } from "react";
 
 import {
-  ACTION_SLOT,
+  ADS_ENABLED,
   ADSENSE_CLIENT_ID,
-  IS_LOCALHOST,
-  IS_PRODUCTION_ADS,
+  canRenderRealAds,
+  shouldRenderPlaceholders,
 } from "../../services/ads/adConfig";
 
-let pushedAds = new WeakSet();
+const pushedAds = new WeakSet();
 
 export default function GoogleAdSlot({
-  slot = ACTION_SLOT,
+  slot = "",
   format = "auto",
   responsive = true,
-  minHeight = 90,
+  minHeight = 72,
+  label = "Ad Placeholder",
 }) {
   const adRef = useRef(null);
 
   useEffect(() => {
-    if (
-      !IS_PRODUCTION_ADS ||
-      !slot ||
-      !adRef.current
-    ) {
+    if (!canRenderRealAds() || !slot || !adRef.current) {
       return;
     }
 
-    if (
-      pushedAds.has(adRef.current)
-    ) {
+    if (pushedAds.has(adRef.current)) {
       return;
     }
 
     try {
-      window.adsbygoogle =
-        window.adsbygoogle || [];
-
+      window.adsbygoogle = window.adsbygoogle || [];
       window.adsbygoogle.push({});
-
       pushedAds.add(adRef.current);
     } catch {
       return;
     }
   }, [slot]);
 
-  if (!slot) {
+  if (!ADS_ENABLED) {
     return null;
   }
 
-  if (IS_LOCALHOST) {
+  if (shouldRenderPlaceholders() || !slot) {
     return (
       <div
         style={{
           width: "100%",
           minHeight: `${minHeight}px`,
           borderRadius: "18px",
-          border:
-            "1px solid rgba(0,255,170,.12)",
+          border: "1px solid rgba(0,255,170,.18)",
           background:
-            "linear-gradient(180deg, rgba(5,16,14,.94), rgba(0,0,0,.82))",
+            "linear-gradient(180deg, rgba(5,22,18,.96), rgba(0,0,0,.88))",
+          boxShadow:
+            "0 18px 42px rgba(0,0,0,.34), inset 0 0 22px rgba(0,255,170,.04)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "rgba(255,255,255,.54)",
+          color: "rgba(255,255,255,.62)",
           fontSize: "12px",
-          letterSpacing: ".5px",
+          fontWeight: 900,
+          letterSpacing: "1px",
+          textTransform: "uppercase",
         }}
       >
-        Ad Placeholder
+        {label}
       </div>
     );
-  }
-
-  if (!IS_PRODUCTION_ADS) {
-    return null;
   }
 
   return (
@@ -87,14 +75,13 @@ export default function GoogleAdSlot({
       className="adsbygoogle"
       style={{
         display: "block",
+        width: "100%",
         minHeight: `${minHeight}px`,
       }}
       data-ad-client={ADSENSE_CLIENT_ID}
       data-ad-slot={slot}
       data-ad-format={format}
-      data-full-width-responsive={
-        responsive ? "true" : "false"
-      }
+      data-full-width-responsive={responsive ? "true" : "false"}
     />
   );
 }

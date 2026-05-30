@@ -15,33 +15,22 @@ export default function BottomBannerAd() {
   return (
     <div
       style={{
-        position: "fixed",
-        left: "50%",
-        bottom: "10px",
-        transform: "translateX(-50%)",
-        width: "calc(100% - 24px)",
-        maxWidth: "560px",
-        zIndex: 60,
-        pointerEvents: "none",
+        width: "100%",
+        borderRadius: "22px",
+        padding: "8px",
+        border: "1px solid rgba(0,255,170,.14)",
+        background:
+          "linear-gradient(180deg, rgba(5,18,14,.92), rgba(0,0,0,.88))",
+        boxShadow:
+          "0 18px 46px rgba(0,0,0,.42), inset 0 0 22px rgba(0,255,170,.04)",
+        backdropFilter: "blur(10px)",
       }}
     >
-      <div
-        style={{
-          pointerEvents: "auto",
-          backdropFilter: "blur(12px)",
-          background:
-            "linear-gradient(180deg, rgba(5,16,14,.88), rgba(0,0,0,.82))",
-          border: "1px solid rgba(0,255,170,.10)",
-          borderRadius: "22px",
-          padding: "10px",
-          boxShadow: "0 12px 40px rgba(0,0,0,.34)",
-        }}
-      >
-        <GoogleAdSlot
-          slot={BANNER_SLOT}
-          minHeight={72}
-        />
-      </div>
+      <GoogleAdSlot
+        slot={BANNER_SLOT}
+        minHeight={72}
+        label="Ad Placeholder"
+      />
     </div>
   );
 }

@@ -34,6 +34,10 @@ export function shouldShowAds() {
 }
 
 export function requestInterstitialAd(reason = "action") {
+  if (!ADS_ENABLED) {
+    return false;
+  }
+
   try {
     window.dispatchEvent(
       new CustomEvent(INTERSTITIAL_EVENT, {
@@ -43,8 +47,10 @@ export function requestInterstitialAd(reason = "action") {
         },
       }),
     );
+
+    return true;
   } catch {
-    return;
+    return false;
   }
 }
 
