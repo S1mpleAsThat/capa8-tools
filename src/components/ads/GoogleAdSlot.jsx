@@ -16,6 +16,7 @@ export default function GoogleAdSlot({
   format = "auto",
   responsive = true,
   minHeight = 72,
+  maxHeight = null,
   label = "Ad Placeholder",
 }) {
   const adRef = useRef(null);
@@ -42,18 +43,22 @@ export default function GoogleAdSlot({
     return null;
   }
 
+  const boxStyle = {
+    width: "100%",
+    minHeight: `${minHeight}px`,
+    maxHeight: maxHeight ? `${maxHeight}px` : undefined,
+    overflow: maxHeight ? "hidden" : undefined,
+  };
+
   if (shouldRenderPlaceholders() || !slot) {
     return (
       <div
         style={{
-          width: "100%",
-          minHeight: `${minHeight}px`,
+          ...boxStyle,
           borderRadius: "18px",
           border: "1px solid rgba(0,255,170,.18)",
           background:
             "linear-gradient(180deg, rgba(5,22,18,.96), rgba(0,0,0,.88))",
-          boxShadow:
-            "0 18px 42px rgba(0,0,0,.34), inset 0 0 22px rgba(0,255,170,.04)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -77,6 +82,8 @@ export default function GoogleAdSlot({
         display: "block",
         width: "100%",
         minHeight: `${minHeight}px`,
+        maxHeight: maxHeight ? `${maxHeight}px` : undefined,
+        overflow: maxHeight ? "hidden" : undefined,
       }}
       data-ad-client={ADSENSE_CLIENT_ID}
       data-ad-slot={slot}

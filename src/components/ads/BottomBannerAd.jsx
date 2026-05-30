@@ -16,19 +16,20 @@ export default function BottomBannerAd() {
     <div
       style={{
         width: "100%",
+        maxHeight: "92px",
+        overflow: "hidden",
         borderRadius: "22px",
         padding: "8px",
         border: "1px solid rgba(0,255,170,.14)",
         background:
           "linear-gradient(180deg, rgba(5,18,14,.92), rgba(0,0,0,.88))",
-        boxShadow:
-          "0 18px 46px rgba(0,0,0,.42), inset 0 0 22px rgba(0,255,170,.04)",
-        backdropFilter: "blur(10px)",
       }}
     >
       <GoogleAdSlot
         slot={BANNER_SLOT}
+        format="horizontal"
         minHeight={72}
+        maxHeight={76}
         label="Ad Placeholder"
       />
     </div>
