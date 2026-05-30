@@ -185,11 +185,11 @@ function AppContent() {
       <img className="fx-particles" src={particlesOverlay} alt="" />
       <img className="fx-scanlines" src={scanlines} alt="" />
 
-      <InterstitialAdHost />
+      {/* <InterstitialAdHost /> */}
 
-      {selectedTool ? (
-        <>
-          <AppTopBar onBack={handleBackHome} />
+{selectedTool ? (
+  <>
+    <AppTopBar onBack={handleBackHome} />
 
           <Suspense fallback={<LoadingScreen />}>
             <ToolDetail
