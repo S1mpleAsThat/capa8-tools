@@ -7,6 +7,26 @@ import {
 
 import { withTimeout } from "../utils/timeout";
 
+const RETRY_DELAY_BASE = 1500;
+
+function sleep(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+function isRetryableError(error) {
+  const message = String(error?.message || "").toLowerCase();
+
+  return (
+    message.includes("429") ||
+    message.includes("too many requests") ||
+    message.includes("quota") ||
+    message.includes("overloaded") ||
+    message.includes("rate")
+  );
+}
+
 async function runGeminiRequest({
   input = "",
   type = "Prompt para ChatGPT",
@@ -43,8 +63,10 @@ async function runGeminiRequest({
 
   if (!response.ok) {
     throw new Error(
-      data?.error ||
-        "No se pudo generar contenido con Gemini.",
+      `${response.status}: ${
+        data?.error ||
+        "No se pudo generar contenido con Gemini."
+      }`,
     );
   }
 
@@ -79,6 +101,14 @@ export async function generateGeminiContent({
       });
     } catch (error) {
       lastError = error;
+
+      const hasMoreAttempts = attempt < AI_RETRY_COUNT;
+
+      if (!hasMoreAttempts || !isRetryableError(error)) {
+        break;
+      }
+
+      await sleep(RETRY_DELAY_BASE * (attempt + 1));
     }
   }
 

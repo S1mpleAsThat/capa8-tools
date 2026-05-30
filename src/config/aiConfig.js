@@ -26,7 +26,7 @@ export const AI_MAX_TOKENS =
   ENV_AI_MAX_TOKENS || 800;
 
 export const AI_TIMEOUT =
-  ENV_AI_TIMEOUT || 12000;
+  ENV_AI_TIMEOUT || 20000;
 
 export const AI_RETRY_COUNT =
-  ENV_AI_RETRY_COUNT || 1;
+  ENV_AI_RETRY_COUNT || 2;
