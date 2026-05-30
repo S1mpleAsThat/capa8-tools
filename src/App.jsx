@@ -37,6 +37,14 @@ const WelcomePage = lazy(() => import("./pages/WelcomePage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const LanguageGatePage = lazy(() => import("./pages/LanguageGatePage"));
 
+const PrivacyPolicyPage = lazy(() =>
+  import("./pages/PrivacyPolicyPage"),
+);
+const TermsOfServicePage = lazy(() =>
+  import("./pages/TermsOfServicePage"),
+);
+const ContactPage = lazy(() => import("./pages/ContactPage"));
+
 const ACTIVE_TOOL_KEY = "active-tool";
 const PUBLIC_LANGUAGE_KEY = "capa8-public-language";
 
@@ -47,6 +55,14 @@ function hasPublicLanguage() {
   } catch {
     return false;
   }
+}
+
+function getCurrentPath() {
+  if (typeof window === "undefined") {
+    return "/";
+  }
+
+  return window.location.pathname || "/";
 }
 
 function LoadingScreen() {
@@ -67,6 +83,76 @@ function LoadingScreen() {
   );
 }
 
+function AppShell({ children, showAds = true }) {
+  return (
+    <main
+      className="app"
+      style={{
+        paddingBottom: showAds ? "110px" : undefined,
+      }}
+    >
+      <img className="app-bg" src={heroBg} alt="" />
+      <img className="fx-glow-corner" src={glowCorner} alt="" />
+      <img className="fx-particles" src={particlesOverlay} alt="" />
+      <img className="fx-scanlines" src={scanlines} alt="" />
+
+      {children}
+
+      {showAds ? (
+        <div
+          style={{
+            position: "fixed",
+            left: "50%",
+            bottom: "12px",
+            transform: "translateX(-50%)",
+            width: "min(92vw, 420px)",
+            zIndex: 9999,
+            pointerEvents: "auto",
+          }}
+        >
+          <BottomBannerAd />
+        </div>
+      ) : null}
+    </main>
+  );
+}
+
+function LegalRoute() {
+  const currentPath = getCurrentPath();
+
+  if (currentPath === "/privacy") {
+    return (
+      <AppShell showAds={false}>
+        <Suspense fallback={<LoadingScreen />}>
+          <PrivacyPolicyPage />
+        </Suspense>
+      </AppShell>
+    );
+  }
+
+  if (currentPath === "/terms") {
+    return (
+      <AppShell showAds={false}>
+        <Suspense fallback={<LoadingScreen />}>
+          <TermsOfServicePage />
+        </Suspense>
+      </AppShell>
+    );
+  }
+
+  if (currentPath === "/contact") {
+    return (
+      <AppShell showAds={false}>
+        <Suspense fallback={<LoadingScreen />}>
+          <ContactPage />
+        </Suspense>
+      </AppShell>
+    );
+  }
+
+  return null;
+}
+
 function AppContent() {
   const [selectedToolId, setSelectedToolId] = useState(null);
   const [hasFinishedOnboarding, setHasFinishedOnboarding] =
@@ -76,6 +162,8 @@ function AppContent() {
 
   const { loading, isAuthenticated, user } = useAuth();
   const { t } = useLanguage();
+
+  const legalRoute = LegalRoute();
 
   const availableTools = useMemo(
     () => [
@@ -143,6 +231,10 @@ function AppContent() {
     setHasSelectedPublicLanguage(true);
   }
 
+  if (legalRoute) {
+    return legalRoute;
+  }
+
   if (loading) {
     return <LoadingScreen />;
   }
@@ -174,17 +266,7 @@ function AppContent() {
   }
 
   return (
-    <main
-      className="app"
-      style={{
-        paddingBottom: "110px",
-      }}
-    >
-      <img className="app-bg" src={heroBg} alt="" />
-      <img className="fx-glow-corner" src={glowCorner} alt="" />
-      <img className="fx-particles" src={particlesOverlay} alt="" />
-      <img className="fx-scanlines" src={scanlines} alt="" />
-
+    <AppShell showAds>
       <InterstitialAdHost />
 
       {selectedTool ? (
@@ -204,21 +286,7 @@ function AppContent() {
           <ToolsSection onSelectTool={handleSelectTool} />
         </>
       )}
-
-      <div
-        style={{
-          position: "fixed",
-          left: "50%",
-          bottom: "12px",
-          transform: "translateX(-50%)",
-          width: "min(92vw, 420px)",
-          zIndex: 9999,
-          pointerEvents: "auto",
-        }}
-      >
-        <BottomBannerAd />
-      </div>
-    </main>
+    </AppShell>
   );
 }
 
