@@ -23,6 +23,18 @@ export default function LegalFooter() {
         }}
       >
         <a
+          href="/pro"
+          style={{
+            color: "rgba(255,215,120,.72)",
+            fontSize: "12px",
+            textDecoration: "none",
+            fontWeight: 700,
+          }}
+        >
+          CAPA 8 PRO
+        </a>
+
+        <a
           href="/privacy"
           style={{
             color: "rgba(255,255,255,.56)",

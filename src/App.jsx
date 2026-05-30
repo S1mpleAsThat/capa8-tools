@@ -25,6 +25,8 @@ import {
   setUserItem,
 } from "./services/storage/userStorage";
 
+import { isProUser } from "./services/subscription/subscriptionConfig";
+
 import AppTopBar from "./components/AppTopBar";
 import HeroSection from "./components/HeroSection";
 import ToolsSection from "./components/ToolsSection";
@@ -46,6 +48,7 @@ const TermsOfServicePage = lazy(() =>
   import("./pages/TermsOfServicePage"),
 );
 const ContactPage = lazy(() => import("./pages/ContactPage"));
+const ProPage = lazy(() => import("./pages/ProPage"));
 
 const ACTIVE_TOOL_KEY = "active-tool";
 const PUBLIC_LANGUAGE_KEY = "capa8-public-language";
@@ -119,7 +122,7 @@ function AppShell({ children, showAds = true }) {
   );
 }
 
-function LegalRoute() {
+function PublicRoute() {
   const currentPath = getCurrentPath();
 
   if (currentPath === "/privacy") {
@@ -152,6 +155,16 @@ function LegalRoute() {
     );
   }
 
+  if (currentPath === "/pro") {
+    return (
+      <AppShell showAds={false}>
+        <Suspense fallback={<LoadingScreen />}>
+          <ProPage />
+        </Suspense>
+      </AppShell>
+    );
+  }
+
   return null;
 }
 
@@ -165,7 +178,8 @@ function AppContent() {
   const { loading, isAuthenticated, user } = useAuth();
   const { t } = useLanguage();
 
-  const legalRoute = LegalRoute();
+  const publicRoute = PublicRoute();
+  const currentIsProUser = isProUser();
 
   const availableTools = useMemo(
     () => [
@@ -233,8 +247,8 @@ function AppContent() {
     setHasSelectedPublicLanguage(true);
   }
 
-  if (legalRoute) {
-    return legalRoute;
+  if (publicRoute) {
+    return publicRoute;
   }
 
   if (loading) {
@@ -268,10 +282,10 @@ function AppContent() {
   }
 
   return (
-    <AppShell showAds>
-      <InterstitialAdHost />
+    <AppShell showAds={!currentIsProUser}>
+      {!currentIsProUser ? <InterstitialAdHost /> : null}
 
-{selectedTool ? (
+      {selectedTool ? (
         <>
           <AppTopBar onBack={handleBackHome} />
 

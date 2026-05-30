@@ -4,8 +4,12 @@ import useLanguage from "../hooks/useLanguage";
 
 import ToolCard from "./ToolCard";
 
+import logoHorizontalPro from "../assets/capa8-pro/logo-horizontal-pro.png";
+
 export default function ToolsSection({ onSelectTool }) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
+
+  const isEnglish = language === "en";
 
   const tools = [
     {
@@ -25,6 +29,17 @@ export default function ToolsSection({ onSelectTool }) {
     },
   ];
 
+  function openPro() {
+    window.location.href = "/pro";
+  }
+
+  function handleProKeyDown(event) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openPro();
+    }
+  }
+
   return (
     <section className="tools-section">
       <div className="section-header">
@@ -41,6 +56,51 @@ export default function ToolsSection({ onSelectTool }) {
             onClick={() => onSelectTool(tool)}
           />
         ))}
+
+        <article
+          className="tool-card"
+          onClick={openPro}
+          onKeyDown={handleProKeyDown}
+          role="button"
+          tabIndex={0}
+          aria-label="CAPA 8 PRO"
+        >
+          <div
+            className="card-content"
+            style={{
+              alignItems: "center",
+              textAlign: "center",
+            }}
+          >
+            <img
+              src={logoHorizontalPro}
+              alt="CAPA 8 PRO"
+              style={{
+                width: "220px",
+                maxWidth: "100%",
+                marginBottom: "14px",
+              }}
+            />
+
+            <h3>CAPA 8 PRO</h3>
+
+            <p>
+              {isEnglish
+                ? "Unlock an ad-free experience, extended history and premium tools."
+                : "Desbloquea una experiencia sin anuncios, historial extendido y herramientas premium."}
+            </p>
+
+            <p
+              style={{
+                marginTop: "12px",
+                color: "#18ffad",
+                fontWeight: 800,
+              }}
+            >
+              {isEnglish ? "Coming soon" : "Próximamente"}
+            </p>
+          </div>
+        </article>
       </div>
     </section>
   );
