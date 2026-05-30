@@ -4,7 +4,7 @@ import useLanguage from "../hooks/useLanguage";
 
 import ToolCard from "./ToolCard";
 
-import logoHorizontalPro from "../assets/capa8-pro/logo-horizontal-pro.png";
+import logoStackedpro from "../assets/capa8-pro/logo-staked-pro.png";
 
 export default function ToolsSection({ onSelectTool }) {
   const { t, language } = useLanguage();
@@ -73,7 +73,7 @@ export default function ToolsSection({ onSelectTool }) {
             }}
           >
             <img
-              src={logoHorizontalPro}
+              src={logoStackedpro}
               alt="CAPA 8 PRO"
               style={{
                 width: "220px",
