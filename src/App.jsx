@@ -32,6 +32,8 @@ import ToolsSection from "./components/ToolsSection";
 import BottomBannerAd from "./components/ads/BottomBannerAd";
 import InterstitialAdHost from "./components/ads/InterstitialAdHost";
 
+import LegalFooter from "./components/LegalFooter";
+
 const ToolDetail = lazy(() => import("./components/ToolDetail"));
 const WelcomePage = lazy(() => import("./pages/WelcomePage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -269,7 +271,7 @@ function AppContent() {
     <AppShell showAds>
       <InterstitialAdHost />
 
-      {selectedTool ? (
+{selectedTool ? (
         <>
           <AppTopBar onBack={handleBackHome} />
 
@@ -284,6 +286,7 @@ function AppContent() {
         <>
           <HeroSection />
           <ToolsSection onSelectTool={handleSelectTool} />
+          <LegalFooter />
         </>
       )}
     </AppShell>
