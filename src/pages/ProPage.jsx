@@ -80,7 +80,7 @@ export default function ProPage() {
             {isEnglish
               ? "Unlock a premium workspace for advanced productivity, cleaner tools, extended usage and future automation features."
               : "Desbloquea un espacio premium para productividad avanzada, herramientas más limpias, uso extendido y futuras funciones de automatización."}
-          </p>
+          </p
         </div>
 
         <div
