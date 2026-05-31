@@ -85,9 +85,7 @@ export async function generateAIContent({
 
   if (!shouldUseGemini() && !shouldUseGroqDirectly()) {
     if (isProductionMode()) {
-      throw new Error(
-        "[AI_CONFIG_ERROR] Modo production activo, pero no hay provider remoto válido configurado.",
-      );
+      return "[AI_CONFIG_ERROR] Modo production activo, pero no hay provider remoto válido configurado.";
     }
 
     const result = await generateMockContent({
@@ -115,7 +113,7 @@ export async function generateAIContent({
     } catch (groqError) {
       console.error("[AI] Groq failed", groqError);
 
-      throw buildProviderError("Groq", groqError).message;
+      return buildProviderError("Groq", groqError).message;
     }
   }
 
@@ -134,7 +132,7 @@ export async function generateAIContent({
     } catch (geminiError) {
       console.error("[AI] Gemini failed", geminiError);
 
-      throw buildProviderError("Gemini", geminiError).message;
+      return buildProviderError("Gemini", geminiError).message;
     }
   }
 
