@@ -107,10 +107,10 @@ export async function generateAIContent({
       console.log("[AI] Groq failed", groqError);
       console.log("[AI] Using Local Fallback");
 
-      const localResult = generateLocalContent({
-        input: safeInput,
-        type: cleanType,
-      });
+      throw new Error(
+  groqError?.message ||
+    "Groq falló y se bloqueó el fallback local para diagnóstico.",
+);
 
       trackGeneration("ai-generation-local-fallback");
 
@@ -156,10 +156,10 @@ export async function generateAIContent({
       console.log("[AI] Groq failed", groqError);
       console.log("[AI] Using Local Fallback");
 
-      const localResult = generateLocalContent({
-        input: safeInput,
-        type: cleanType,
-      });
+      throw new Error(
+  groqError?.message ||
+    "Groq/Gemini fallaron y se bloqueó el fallback local para diagnóstico.",
+);
 
       trackGeneration("ai-generation-local-fallback");
 
