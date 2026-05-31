@@ -25,12 +25,10 @@ function normalizeType(type) {
     : "Prompt para ChatGPT";
 }
 
-function shouldUseGemini() {
   function shouldUseGemini() {
   return AI_PROVIDER === "gemini" || AI_MODE === "gemini";
 }
 
-function shouldUseGroqDirectly() {
   function shouldUseGroqDirectly() {
   return (
     AI_PROVIDER === "groq" ||
