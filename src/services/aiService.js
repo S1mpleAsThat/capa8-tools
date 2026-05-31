@@ -80,9 +80,7 @@ export async function generateAIContent({
   });
 
   if (isProductionMode() && AI_PROVIDER !== "groq") {
-    throw new Error(
-      `[AI_CONFIG_ERROR] En production el provider debe ser groq. Provider actual: ${AI_PROVIDER}`,
-    );
+    return `[AI_CONFIG_ERROR] En production el provider debe ser groq. Provider actual: ${AI_PROVIDER}`;
   }
 
   if (!shouldUseGemini() && !shouldUseGroqDirectly()) {
@@ -117,7 +115,7 @@ export async function generateAIContent({
     } catch (groqError) {
       console.error("[AI] Groq failed", groqError);
 
-      throw buildProviderError("Groq", groqError);
+      throw buildProviderError("Groq", groqError).message;
     }
   }
 
@@ -136,11 +134,9 @@ export async function generateAIContent({
     } catch (geminiError) {
       console.error("[AI] Gemini failed", geminiError);
 
-      throw buildProviderError("Gemini", geminiError);
+      throw buildProviderError("Gemini", geminiError).message;
     }
   }
 
-  throw new Error(
-    `[AI_CONFIG_ERROR] Configuración IA inválida. Provider: ${AI_PROVIDER}. Mode: ${AI_MODE}`,
-  );
+  return `[AI_CONFIG_ERROR] Configuración IA inválida. Provider: ${AI_PROVIDER}. Mode: ${AI_MODE}`;
 }
