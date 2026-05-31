@@ -12,3 +12,11 @@ export function getCurrentPlan() {
 export function isProUser() {
   return getCurrentPlan() === PLAN_PRO;
 }
+
+export function shouldShowProFeatures() {
+  return isProUser();
+}
+
+export function shouldHideAdsForPro() {
+  return isProUser();
+}

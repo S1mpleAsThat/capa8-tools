@@ -4,7 +4,6 @@ import { useEffect } from "react";
 
 import logoStacked from "../assets/capa8-pro/logo-stacked-pro.png";
 import logoHorizontal from "../assets/capa8-pro/logo-horizontal-pro.png";
-import iconMaster from "../assets/capa8-pro/icon-master-pro.png";
 
 import useLanguage from "../hooks/useLanguage";
 
@@ -208,15 +207,6 @@ export default function ProPage() {
             }}
           />
 
-          <img
-            src={iconMaster}
-            alt=""
-            style={{
-              width: "90px",
-              margin: "0 auto 18px",
-            }}
-          />
-
           <p
             style={{
               color: "rgba(255,255,255,.62)",
@@ -226,8 +216,8 @@ export default function ProPage() {
             }}
           >
             {isEnglish
-              ? "Subscriptions are not active yet. CAPA 8 PRO is being prepared for the next monetization phase."
-              : "Las suscripciones aún no están activas. CAPA 8 PRO está preparado para la próxima fase de monetización."}
+              ? "Subscriptions are not active yet. CAPA 8 PRO is being prepared for the Android and AdMob monetization phase."
+              : "Las suscripciones aún no están activas. CAPA 8 PRO está preparado para la fase Android y monetización con AdMob."}
           </p>
 
           <button
@@ -238,7 +228,9 @@ export default function ProPage() {
               marginBottom: "12px",
             }}
           >
-            {isEnglish ? "Coming soon" : "Próximamente"}
+            {isEnglish
+              ? "CAPA 8 PRO coming soon"
+              : "CAPA 8 PRO próximamente"}
           </button>
 
           <button

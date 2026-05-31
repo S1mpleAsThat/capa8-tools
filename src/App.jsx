@@ -25,7 +25,7 @@ import {
   setUserItem,
 } from "./services/storage/userStorage";
 
-import { isProUser } from "./services/subscription/subscriptionConfig";
+import { shouldHideAdsForPro } from "./services/subscription/subscriptionConfig";
 
 import AppTopBar from "./components/AppTopBar";
 import HeroSection from "./components/HeroSection";
@@ -179,7 +179,7 @@ function AppContent() {
   const { t } = useLanguage();
 
   const publicRoute = PublicRoute();
-  const currentIsProUser = isProUser();
+  const showAds = !shouldHideAdsForPro();
 
   const availableTools = useMemo(
     () => [
@@ -282,8 +282,8 @@ function AppContent() {
   }
 
   return (
-    <AppShell showAds={!currentIsProUser}>
-      {!currentIsProUser ? <InterstitialAdHost /> : null}
+    <AppShell showAds={showAds}>
+      {showAds ? <InterstitialAdHost /> : null}
 
       {selectedTool ? (
         <>
