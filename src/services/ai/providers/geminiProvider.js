@@ -38,7 +38,7 @@ async function runGeminiRequest({
   }
 
   const response = await withTimeout(
-    fetch("/api/generate", {
+    fetch("https://capa8-tools.vercel.app/api/generate", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -21,7 +21,7 @@ async function runGroqRequest({
     return "";
   }
 
-  const response = await fetch("/api/groq", {
+  const response = await fetch("https://capa8-tools.vercel.app/api/groq", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
