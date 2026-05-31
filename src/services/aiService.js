@@ -10,10 +10,7 @@ import { trackAdAction } from "./ads/adService";
 
 import { generateGeminiContent } from "./ai/providers/geminiProvider";
 import { generateGroqContent } from "./ai/providers/groqProvider";
-import {
-  generateMockContent,
-  generateLocalContent,
-} from "./ai/providers/mockProvider";
+import { generateMockContent } from "./ai/providers/mockProvider";
 
 function normalizeInput(input) {
   return typeof input === "string" ? input.trim() : "";
@@ -25,34 +22,19 @@ function normalizeType(type) {
     : "Prompt para ChatGPT";
 }
 
-  function shouldUseGemini() {
+function isProductionMode() {
+  return AI_MODE === "production";
+}
+
+function shouldUseGemini() {
   return AI_PROVIDER === "gemini" || AI_MODE === "gemini";
 }
 
-  function shouldUseGroqDirectly() {
+function shouldUseGroqDirectly() {
   return (
     AI_PROVIDER === "groq" ||
     AI_MODE === "groq" ||
     AI_MODE === "production"
-  );
-}
-
-function isRecoverableProviderError(error) {
-  const message = String(
-    error?.message || error || "",
-  ).toLowerCase();
-
-  return (
-    message.includes("429") ||
-    message.includes("too many requests") ||
-    message.includes("quota") ||
-    message.includes("rate limit") ||
-    message.includes("rate_limit") ||
-    message.includes("unavailable") ||
-    message.includes("overloaded") ||
-    message.includes("timeout") ||
-    message.includes("network") ||
-    message.includes("failed")
   );
 }
 
@@ -62,6 +44,17 @@ function trackGeneration(reason) {
   } catch {
     return;
   }
+}
+
+function buildProviderError(providerName, error) {
+  const message =
+    error?.message ||
+    String(error || "") ||
+    "Error desconocido del proveedor IA";
+
+  return new Error(
+    `[AI_PROVIDER_ERROR] ${providerName} falló. Fallback local bloqueado para diagnóstico. Error real: ${message}`,
+  );
 }
 
 export async function generateAIContent({
@@ -80,7 +73,25 @@ export async function generateAIContent({
       ? cleanInput.slice(0, AI_MAX_INPUT_LENGTH)
       : cleanInput;
 
+  console.log("[AI] Config", {
+    provider: AI_PROVIDER,
+    mode: AI_MODE,
+    production: isProductionMode(),
+  });
+
+  if (isProductionMode() && AI_PROVIDER !== "groq") {
+    throw new Error(
+      `[AI_CONFIG_ERROR] En production el provider debe ser groq. Provider actual: ${AI_PROVIDER}`,
+    );
+  }
+
   if (!shouldUseGemini() && !shouldUseGroqDirectly()) {
+    if (isProductionMode()) {
+      throw new Error(
+        "[AI_CONFIG_ERROR] Modo production activo, pero no hay provider remoto válido configurado.",
+      );
+    }
+
     const result = await generateMockContent({
       input: safeInput,
       type: cleanType,
@@ -104,66 +115,32 @@ export async function generateAIContent({
 
       return groqResult;
     } catch (groqError) {
-      console.log("[AI] Groq failed", groqError);
-      console.log("[AI] Using Local Fallback");
+      console.error("[AI] Groq failed", groqError);
 
-      throw new Error(
-  groqError?.message ||
-    "Groq falló y se bloqueó el fallback local para diagnóstico.",
-);
-
-      trackGeneration("ai-generation-local-fallback");
-
-      return localResult;
+      throw buildProviderError("Groq", groqError);
     }
   }
 
-  try {
-    console.log(
-  "[AI] Provider:",
-  AI_PROVIDER,
-  "Mode:",
-  AI_MODE,
-);
-
-    const geminiResult = await generateGeminiContent({
-      input: safeInput,
-      type: cleanType,
-    });
-
-    trackGeneration("ai-generation-gemini");
-
-    return geminiResult;
-  } catch (geminiError) {
-    console.log("[AI] Gemini failed", geminiError);
-
-    if (!isRecoverableProviderError(geminiError)) {
-      console.log("[AI] Using Groq");
-    } else {
-      console.log("[AI] Using Groq");
-    }
-
+  if (shouldUseGemini()) {
     try {
-      const groqResult = await generateGroqContent({
+      console.log("[AI] Using Gemini");
+
+      const geminiResult = await generateGeminiContent({
         input: safeInput,
         type: cleanType,
       });
 
-      trackGeneration("ai-generation-groq-fallback");
+      trackGeneration("ai-generation-gemini");
 
-      return groqResult;
-    } catch (groqError) {
-      console.log("[AI] Groq failed", groqError);
-      console.log("[AI] Using Local Fallback");
+      return geminiResult;
+    } catch (geminiError) {
+      console.error("[AI] Gemini failed", geminiError);
 
-      throw new Error(
-  groqError?.message ||
-    "Groq/Gemini fallaron y se bloqueó el fallback local para diagnóstico.",
-);
-
-      trackGeneration("ai-generation-local-fallback");
-
-      return localResult;
+      throw buildProviderError("Gemini", geminiError);
     }
   }
+
+  throw new Error(
+    `[AI_CONFIG_ERROR] Configuración IA inválida. Provider: ${AI_PROVIDER}. Mode: ${AI_MODE}`,
+  );
 }
