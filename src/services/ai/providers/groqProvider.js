@@ -20,6 +20,11 @@ async function runGroqRequest({
   if (!cleanInput) {
     return "";
   }
+  
+  console.log(
+  "[GROQ] Calling:",
+  "https://capa8-tools.vercel.app/api/groq"
+);
 
   const response = await fetch("https://capa8-tools.vercel.app/api/groq", {
     method: "POST",
@@ -33,6 +38,11 @@ async function runGroqRequest({
   });
 
   const data = await response.json().catch(() => null);
+  
+  console.log(
+  "[GROQ] Status:",
+  response.status
+);
 
   if (!response.ok) {
     throw new Error(

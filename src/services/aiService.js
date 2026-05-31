@@ -26,15 +26,17 @@ function normalizeType(type) {
 }
 
 function shouldUseGemini() {
-  return (
-    AI_PROVIDER === "gemini" ||
-    AI_MODE === "gemini" ||
-    AI_MODE === "production"
-  );
+  function shouldUseGemini() {
+  return AI_PROVIDER === "gemini" || AI_MODE === "gemini";
 }
 
 function shouldUseGroqDirectly() {
-  return AI_PROVIDER === "groq" || AI_MODE === "groq";
+  function shouldUseGroqDirectly() {
+  return (
+    AI_PROVIDER === "groq" ||
+    AI_MODE === "groq" ||
+    AI_MODE === "production"
+  );
 }
 
 function isRecoverableProviderError(error) {
@@ -119,7 +121,12 @@ export async function generateAIContent({
   }
 
   try {
-    console.log("[AI] Using Gemini");
+    console.log(
+  "[AI] Provider:",
+  AI_PROVIDER,
+  "Mode:",
+  AI_MODE,
+);
 
     const geminiResult = await generateGeminiContent({
       input: safeInput,

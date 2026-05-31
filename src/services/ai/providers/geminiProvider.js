@@ -36,6 +36,11 @@ async function runGeminiRequest({
   if (!cleanInput) {
     return "";
   }
+  
+  console.log(
+  "[GEMINI] Calling:",
+  "https://capa8-tools.vercel.app/api/generate"
+);
 
   const response = await withTimeout(
     fetch("https://capa8-tools.vercel.app/api/generate", {
@@ -50,6 +55,11 @@ async function runGeminiRequest({
     }),
     AI_TIMEOUT,
   );
+  
+  console.log(
+  "[GEMINI] Status:",
+  response.status
+);
 
   let data = null;
 

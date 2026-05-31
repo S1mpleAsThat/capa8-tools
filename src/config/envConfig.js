@@ -1,12 +1,15 @@
 // src/config/envConfig.js
 
 const env = import.meta.env || {};
+console.log("ENV:", env);
+console.log("AI_PROVIDER:", env.VITE_AI_PROVIDER);
+console.log("AI_MODE:", env.VITE_AI_MODE);
 
 export const APP_NAME = env.VITE_APP_NAME || "CAPA 8 TOOLS";
 
-export const ENV_AI_PROVIDER = env.VITE_AI_PROVIDER || "local";
+export const ENV_AI_PROVIDER = env.VITE_AI_PROVIDER || "groq";
 
-export const ENV_AI_MODE = env.VITE_AI_MODE || "mock";
+export const ENV_AI_MODE = env.VITE_AI_MODE || "production";
 
 export const ENV_AI_MAX_INPUT_LENGTH =
   Number(env.VITE_AI_MAX_INPUT_LENGTH) || 1500;
