@@ -7,6 +7,8 @@ import {
 
 import { withTimeout } from "../utils/timeout";
 
+import { CapacitorHttp } from "@capacitor/core";
+
 async function runGroqRequest({
   input = "",
   type = "Prompt para ChatGPT",
@@ -26,25 +28,25 @@ async function runGroqRequest({
   "https://capa8-tools.vercel.app/api/groq"
 );
 
-  const response = await fetch("https://capa8-tools.vercel.app/api/groq", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      input: cleanInput,
-      type: cleanType,
-    }),
-  });
+  const response = await CapacitorHttp.post({
+  url: "https://capa8-tools.vercel.app/api/groq",
+  headers: {
+    "Content-Type": "application/json",
+  },
+  data: {
+    input: cleanInput,
+    type: cleanType,
+  },
+});
 
-  const data = await response.json().catch(() => null);
+const data = response.data || null;
   
   console.log(
   "[GROQ] Status:",
   response.status
 );
 
-  if (!response.ok) {
+  if (!(response.status >= 200 && response.status < 300)) {
     throw new Error(
       data?.error ||
         data?.message ||
