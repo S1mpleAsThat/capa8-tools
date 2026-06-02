@@ -6,7 +6,6 @@ const GOOGLE_SCRIPT_ID = "capa8-google-gsi-script";
 const GOOGLE_SCRIPT_SRC = "https://accounts.google.com/gsi/client";
 const GOOGLE_USERINFO_URL = "https://www.googleapis.com/oauth2/v3/userinfo";
 const GOOGLE_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
-const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 
 function wait(ms = 100) {
   return new Promise((resolve) => {
@@ -33,6 +32,13 @@ function getGoogleAndroidCallbackUri() {
   return (
     import.meta.env.VITE_GOOGLE_ANDROID_CALLBACK_URI ||
     "capa8tools://auth"
+  );
+}
+
+function getGoogleTokenApiUrl() {
+  return (
+    import.meta.env.VITE_GOOGLE_TOKEN_API_URL ||
+    "https://capa8-tools.vercel.app/api/auth/google-token"
   );
 }
 
@@ -193,29 +199,27 @@ async function exchangeCodeForToken({
   redirectUri,
   codeVerifier,
 }) {
-  const body = new URLSearchParams({
-    code,
-    client_id: clientId,
-    redirect_uri: redirectUri,
-    grant_type: "authorization_code",
-    code_verifier: codeVerifier,
-  });
-
-  const response = await fetch(GOOGLE_TOKEN_URL, {
+  const response = await fetch(getGoogleTokenApiUrl(), {
     method: "POST",
     headers: {
-      "Content-Type": "application/x-www-form-urlencoded",
+      "Content-Type": "application/json",
     },
-    body,
+    body: JSON.stringify({
+      code,
+      clientId,
+      redirectUri,
+      codeVerifier,
+    }),
   });
 
   const data = await response.json();
 
   if (!response.ok) {
-    console.error("[GOOGLE_ANDROID_TOKEN_ERROR]", data);
+    console.error("[GOOGLE_ANDROID_TOKEN_API_ERROR]", data);
 
     throw new Error(
-      data.error_description ||
+      data.message ||
+        data.error_description ||
         data.error ||
         "Google no pudo intercambiar el código OAuth.",
     );
