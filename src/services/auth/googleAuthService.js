@@ -13,11 +13,6 @@ const GOOGLE_SCRIPT_SRC =
 const GOOGLE_USERINFO_URL =
   "https://www.googleapis.com/oauth2/v3/userinfo";
 
-const GOOGLE_SCOPES = [
-  "profile",
-  "email",
-];
-
 function wait(ms = 100) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
@@ -47,14 +42,11 @@ function normalizeGoogleUser({
   email = "",
   picture = "",
   accessToken = "",
-  idToken = "",
 } = {}) {
   return {
     provider: "google",
 
     accessToken,
-
-    idToken,
 
     user: {
       id,
@@ -299,75 +291,9 @@ async function signInWithGoogleWeb() {
 }
 
 async function signInWithGoogleAndroid() {
-  try {
-    const {
-      GoogleAuth,
-    } = await import(
-      "@codetrix-studio/capacitor-google-auth"
-    );
-
-    const clientId =
-      getGoogleClientId();
-
-    await GoogleAuth.initialize({
-      clientId:
-        clientId ||
-        undefined,
-
-      scopes:
-        GOOGLE_SCOPES,
-
-      grantOfflineAccess:
-        true,
-    });
-
-    const response =
-      await GoogleAuth.signIn();
-
-    const accessToken =
-      response?.authentication
-        ?.accessToken ||
-      response?.accessToken ||
-      "";
-
-    const idToken =
-      response?.authentication
-        ?.idToken ||
-      response?.idToken ||
-      "";
-
-    return normalizeGoogleUser({
-      id:
-        response?.id ||
-        response?.userId ||
-        response?.email ||
-        "",
-
-      name:
-        response?.name ||
-        response?.displayName ||
-        "Usuario Google",
-
-      email:
-        response?.email ||
-        "",
-
-      picture:
-        response?.imageUrl ||
-        response?.photoUrl ||
-        response?.picture ||
-        "",
-
-      accessToken,
-
-      idToken,
-    });
-  } catch (error) {
-    throw new Error(
-      error?.message ||
-        "No se pudo iniciar sesión con Google en Android.",
-    );
-  }
+  throw new Error(
+    "Google Login Android aún no está configurado para esta compilación.",
+  );
 }
 
 export async function signInWithGoogle() {
@@ -379,21 +305,5 @@ export async function signInWithGoogle() {
 }
 
 export async function signOutFromGoogle() {
-  if (!isAndroidNative()) {
-    return true;
-  }
-
-  try {
-    const {
-      GoogleAuth,
-    } = await import(
-      "@codetrix-studio/capacitor-google-auth"
-    );
-
-    await GoogleAuth.signOut();
-
-    return true;
-  } catch {
-    return false;
-  }
+  return true;
 }
