@@ -183,7 +183,6 @@ async function signInWithGoogleAndroid() {
 
     await GoogleSignIn.initialize({
       clientId,
-      scopes: ["openid", "email", "profile"],
     });
 
     const result = await GoogleSignIn.signIn();
@@ -191,14 +190,14 @@ async function signInWithGoogleAndroid() {
     console.log("[GOOGLE_ANDROID_RESULT]", result);
 
     return normalizeGoogleUser({
-      id: result.userId || result.id || result.email || "",
+      id: result.userId || result.email || "",
       name:
         result.displayName ||
-        result.name ||
         result.givenName ||
+        result.email ||
         "Usuario Google",
       email: result.email || "",
-      picture: result.imageUrl || result.picture || result.photoUrl || "",
+      picture: result.imageUrl || "",
       accessToken: result.accessToken || "",
       idToken: result.idToken || "",
     });
@@ -226,9 +225,7 @@ export async function signOutFromGoogle() {
       "@capawesome/capacitor-google-sign-in"
     );
 
-    if (typeof GoogleSignIn.signOut === "function") {
-      await GoogleSignIn.signOut();
-    }
+    await GoogleSignIn.signOut();
 
     return true;
   } catch (error) {
