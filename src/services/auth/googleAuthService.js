@@ -30,8 +30,6 @@ function getGoogleClientId() {
   return (
     import.meta.env
       .VITE_GOOGLE_CLIENT_ID ||
-    import.meta.env
-      .VITE_GOOGLE_WEB_CLIENT_ID ||
     ""
   );
 }
@@ -292,7 +290,7 @@ async function signInWithGoogleWeb() {
 
 async function signInWithGoogleAndroid() {
   throw new Error(
-    "Google Login Android aún no está configurado para esta compilación.",
+    "Google Login Android aún no está implementado. Utiliza la versión web/PWA.",
   );
 }
 
