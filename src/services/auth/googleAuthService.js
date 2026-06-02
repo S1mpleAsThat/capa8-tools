@@ -35,13 +35,6 @@ function getGoogleAndroidCallbackUri() {
   );
 }
 
-function getGoogleTokenApiUrl() {
-  return (
-    import.meta.env.VITE_GOOGLE_TOKEN_API_URL ||
-    "https://capa8-tools.vercel.app/api/auth/google-token"
-  );
-}
-
 function normalizeGoogleUser({
   id = "",
   name = "",
@@ -63,14 +56,7 @@ function normalizeGoogleUser({
   };
 }
 
-function base64UrlEncode(buffer) {
-  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-}
-
-function createRandomString(length = 64) {
+function createRandomString(length = 32) {
   const values = new Uint8Array(length);
   crypto.getRandomValues(values);
 
@@ -79,29 +65,18 @@ function createRandomString(length = 64) {
     .join("");
 }
 
-async function createCodeChallenge(verifier) {
-  const data = new TextEncoder().encode(verifier);
-  const digest = await crypto.subtle.digest("SHA-256", data);
-
-  return base64UrlEncode(digest);
-}
-
 function buildGoogleAuthUrl({
   clientId,
   redirectUri,
   state,
-  codeChallenge,
 }) {
   const params = new URLSearchParams({
     client_id: clientId,
     redirect_uri: redirectUri,
-    response_type: "code",
+    response_type: "token",
     scope: "openid email profile",
     state,
-    code_challenge: codeChallenge,
-    code_challenge_method: "S256",
     prompt: "select_account",
-    access_type: "offline",
   });
 
   return `${GOOGLE_AUTH_URL}?${params.toString()}`;
@@ -109,16 +84,26 @@ function buildGoogleAuthUrl({
 
 function parseOAuthCallback(url) {
   const parsedUrl = new URL(url);
-  const code = parsedUrl.searchParams.get("code");
-  const state = parsedUrl.searchParams.get("state");
-  const error = parsedUrl.searchParams.get("error");
-  const errorDescription = parsedUrl.searchParams.get("error_description");
+  const hashParams = new URLSearchParams(parsedUrl.hash.replace("#", ""));
+  const searchParams = parsedUrl.searchParams;
 
   return {
-    code,
-    state,
-    error,
-    errorDescription,
+    accessToken:
+      hashParams.get("access_token") ||
+      searchParams.get("access_token") ||
+      "",
+    state:
+      hashParams.get("state") ||
+      searchParams.get("state") ||
+      "",
+    error:
+      hashParams.get("error") ||
+      searchParams.get("error") ||
+      "",
+    errorDescription:
+      hashParams.get("error_description") ||
+      searchParams.get("error_description") ||
+      "",
   };
 }
 
@@ -191,41 +176,6 @@ async function fetchGoogleUser(accessToken) {
   }
 
   return response.json();
-}
-
-async function exchangeCodeForToken({
-  code,
-  clientId,
-  redirectUri,
-  codeVerifier,
-}) {
-  const response = await fetch(getGoogleTokenApiUrl(), {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      code,
-      clientId,
-      redirectUri,
-      codeVerifier,
-    }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    console.error("[GOOGLE_ANDROID_TOKEN_API_ERROR]", data);
-
-    throw new Error(
-      data.message ||
-        data.error_description ||
-        data.error ||
-        "Google no pudo intercambiar el código OAuth.",
-    );
-  }
-
-  return data;
 }
 
 async function signInWithGoogleWeb() {
@@ -301,14 +251,11 @@ async function signInWithGoogleAndroid() {
     ]);
 
     const state = createRandomString(32);
-    const codeVerifier = createRandomString(64);
-    const codeChallenge = await createCodeChallenge(codeVerifier);
 
     const authUrl = buildGoogleAuthUrl({
       clientId,
       redirectUri,
       state,
-      codeChallenge,
     });
 
     const callbackUrl = await new Promise((resolve, reject) => {
@@ -354,7 +301,7 @@ async function signInWithGoogleAndroid() {
         try {
           await Browser.close();
         } catch {
-          // El cierre del navegador no debe bloquear el login.
+          // No bloquear login si Browser.close falla.
         }
 
         resolve(url);
@@ -387,36 +334,22 @@ async function signInWithGoogleAndroid() {
       );
     }
 
-    if (!callback.code) {
-      throw new Error("Google no devolvió código OAuth.");
-    }
-
     if (callback.state !== state) {
       throw new Error("Estado OAuth inválido.");
     }
 
-    const tokenData = await exchangeCodeForToken({
-      code: callback.code,
-      clientId,
-      redirectUri,
-      codeVerifier,
-    });
-
-    const accessToken = tokenData.access_token || "";
-
-    if (!accessToken) {
+    if (!callback.accessToken) {
       throw new Error("Google no devolvió access_token.");
     }
 
-    const profile = await fetchGoogleUser(accessToken);
+    const profile = await fetchGoogleUser(callback.accessToken);
 
     return normalizeGoogleUser({
       id: profile.sub || "",
       name: profile.name || "Usuario Google",
       email: profile.email || "",
       picture: profile.picture || "",
-      accessToken,
-      idToken: tokenData.id_token || "",
+      accessToken: callback.accessToken,
     });
   } catch (error) {
     console.error("[GOOGLE_ANDROID_BROWSER_ERROR]", error);
