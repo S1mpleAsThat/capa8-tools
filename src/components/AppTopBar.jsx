@@ -221,7 +221,7 @@ export default function AppTopBar({ onBack }) {
           background:
             "linear-gradient(180deg, rgba(10,18,16,.88), rgba(0,0,0,.78))",
           borderRadius: "18px",
-          transform: "translate(-42px, -24px)",
+          transform: "translate(-38px, -24px)",
           backdropFilter: "blur(12px)",
           maxWidth: "62vw",
           cursor: "pointer",
