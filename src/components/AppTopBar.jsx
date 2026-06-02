@@ -21,11 +21,7 @@ const EXPORT_KEYS = {
 
 function downloadJsonFile(fileName, data) {
   const fileContent = JSON.stringify(data, null, 2);
-
-  const blob = new Blob([fileContent], {
-    type: "application/json",
-  });
-
+  const blob = new Blob([fileContent], { type: "application/json" });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
 
@@ -41,12 +37,7 @@ function downloadJsonFile(fileName, data) {
 
 export default function AppTopBar({ onBack }) {
   const { user, logout, loading } = useAuth();
-
-  const {
-    language,
-    setLanguage,
-    t,
-  } = useLanguage();
+  const { language, setLanguage, t } = useLanguage();
 
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [pendingLanguage, setPendingLanguage] = useState(language);
@@ -60,10 +51,7 @@ export default function AppTopBar({ onBack }) {
 
   useEffect(() => {
     function handleClickOutside(event) {
-      if (
-        panelRef.current &&
-        !panelRef.current.contains(event.target)
-      ) {
+      if (panelRef.current && !panelRef.current.contains(event.target)) {
         setIsPanelOpen(false);
       }
     }
@@ -83,11 +71,7 @@ export default function AppTopBar({ onBack }) {
     return null;
   }
 
-  const providerLabel =
-    user.provider === "google"
-      ? "GOOGLE"
-      : "DEMO";
-
+  const providerLabel = user.provider === "google" ? "GOOGLE" : "DEMO";
   const initial = user.name?.[0] || "U";
 
   function handleTogglePanel() {
@@ -120,16 +104,8 @@ export default function AppTopBar({ onBack }) {
       data: {
         aiHistory: getUserItem(user.id, EXPORT_KEYS.aiHistory, []),
         checklist: getUserItem(user.id, EXPORT_KEYS.checklist, []),
-        templateFavorites: getUserItem(
-          user.id,
-          EXPORT_KEYS.templateFavorites,
-          [],
-        ),
-        templateRecents: getUserItem(
-          user.id,
-          EXPORT_KEYS.templateRecents,
-          [],
-        ),
+        templateFavorites: getUserItem(user.id, EXPORT_KEYS.templateFavorites, []),
+        templateRecents: getUserItem(user.id, EXPORT_KEYS.templateRecents, []),
         aiPrefill: getUserItem(user.id, EXPORT_KEYS.aiPrefill, ""),
         language: getUserItem(user.id, EXPORT_KEYS.language, "es"),
       },
@@ -162,7 +138,6 @@ export default function AppTopBar({ onBack }) {
 
   async function handleLogout() {
     setIsPanelOpen(false);
-
     await logout();
   }
 
@@ -175,9 +150,10 @@ export default function AppTopBar({ onBack }) {
         alignItems: "center",
         justifyContent: "space-between",
         gap: "14px",
-        padding: "18px 22px 8px",
+        padding: "calc(env(safe-area-inset-top, 0px) + 14px) 18px 8px",
         position: "relative",
         zIndex: 40,
+        minHeight: "92px",
       }}
     >
       <img
@@ -188,7 +164,7 @@ export default function AppTopBar({ onBack }) {
         style={{
           position: "absolute",
           left: "50%",
-          top: "0px",
+          top: "calc(env(safe-area-inset-top, 0px) + 2px)",
           width: "82vw",
           maxWidth: "620px",
           height: "auto",
@@ -198,6 +174,7 @@ export default function AppTopBar({ onBack }) {
           zIndex: 1,
         }}
       />
+
       <button
         type="button"
         onClick={onBack}
@@ -206,12 +183,12 @@ export default function AppTopBar({ onBack }) {
           background: "transparent",
           padding: 0,
           margin: 0,
-          marginLeft: "-44px",
+          marginLeft: "-30px",
           cursor: "pointer",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          transform: "translateY(-52px)",
+          transform: "translateY(-26px)",
           flexShrink: 0,
           position: "relative",
           zIndex: 2,
@@ -222,9 +199,9 @@ export default function AppTopBar({ onBack }) {
           alt="CAPA 8 TOOLS"
           decoding="async"
           style={{
-            height: "160px",
+            height: "130px",
             width: "auto",
-            maxWidth: "280px",
+            maxWidth: "235px",
             objectFit: "contain",
             filter:
               "brightness(1.45) contrast(1.12) drop-shadow(0 0 12px rgba(24,255,173,.28))",
@@ -244,9 +221,9 @@ export default function AppTopBar({ onBack }) {
           background:
             "linear-gradient(180deg, rgba(10,18,16,.88), rgba(0,0,0,.78))",
           borderRadius: "18px",
-          transform: "translateY(-60px)",
+          transform: "translateY(-24px)",
           backdropFilter: "blur(12px)",
-          maxWidth: "66vw",
+          maxWidth: "62vw",
           cursor: "pointer",
           position: "relative",
           zIndex: 2,
@@ -338,9 +315,9 @@ export default function AppTopBar({ onBack }) {
         <div
           style={{
             position: "absolute",
-            top: "82px",
-            right: "22px",
-            width: "min(320px, calc(100vw - 44px))",
+            top: "calc(env(safe-area-inset-top, 0px) + 82px)",
+            right: "18px",
+            width: "min(320px, calc(100vw - 36px))",
             border: "1px solid rgba(0,255,170,.16)",
             background:
               "linear-gradient(180deg, rgba(7,18,15,.96), rgba(0,0,0,.92))",
@@ -352,20 +329,8 @@ export default function AppTopBar({ onBack }) {
             zIndex: 80,
           }}
         >
-          <div
-            style={{
-              display: "grid",
-              gap: "4px",
-              marginBottom: "16px",
-            }}
-          >
-            <strong
-              style={{
-                color: "#ffffff",
-                fontSize: "14px",
-                lineHeight: 1.2,
-              }}
-            >
+          <div style={{ display: "grid", gap: "4px", marginBottom: "16px" }}>
+            <strong style={{ color: "#ffffff", fontSize: "14px", lineHeight: 1.2 }}>
               {user.name}
             </strong>
 
@@ -391,13 +356,7 @@ export default function AppTopBar({ onBack }) {
             </span>
           </div>
 
-          <label
-            style={{
-              display: "grid",
-              gap: "8px",
-              marginBottom: "10px",
-            }}
-          >
+          <label style={{ display: "grid", gap: "8px", marginBottom: "10px" }}>
             <span
               style={{
                 color: "rgba(255,255,255,.68)",
@@ -412,9 +371,7 @@ export default function AppTopBar({ onBack }) {
 
             <select
               value={pendingLanguage}
-              onChange={(event) =>
-                setPendingLanguage(event.target.value)
-              }
+              onChange={(event) => setPendingLanguage(event.target.value)}
               style={{
                 minHeight: "42px",
                 width: "100%",
@@ -458,20 +415,12 @@ export default function AppTopBar({ onBack }) {
             </p>
           ) : null}
 
-          <div
-            style={{
-              display: "grid",
-              gap: "10px",
-            }}
-          >
+          <div style={{ display: "grid", gap: "10px" }}>
             <button
               className="ghost-btn"
               type="button"
               onClick={handleExportUserData}
-              style={{
-                minHeight: "42px",
-                fontSize: "12px",
-              }}
+              style={{ minHeight: "42px", fontSize: "12px" }}
             >
               {t.userExportData}
             </button>
@@ -480,10 +429,7 @@ export default function AppTopBar({ onBack }) {
               className="ghost-btn"
               type="button"
               onClick={handleExportAIHistory}
-              style={{
-                minHeight: "42px",
-                fontSize: "12px",
-              }}
+              style={{ minHeight: "42px", fontSize: "12px" }}
             >
               {t.userAIHistory}
             </button>
@@ -493,10 +439,7 @@ export default function AppTopBar({ onBack }) {
               type="button"
               onClick={handleLogout}
               disabled={loading}
-              style={{
-                minHeight: "42px",
-                fontSize: "12px",
-              }}
+              style={{ minHeight: "42px", fontSize: "12px" }}
             >
               {t.userLogout}
             </button>
