@@ -40,6 +40,7 @@ const ToolDetail = lazy(() => import("./components/ToolDetail"));
 const WelcomePage = lazy(() => import("./pages/WelcomePage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const LanguageGatePage = lazy(() => import("./pages/LanguageGatePage"));
+const AuthCallbackPage = lazy(() => import("./pages/AuthCallbackPage"));
 
 const PrivacyPolicyPage = lazy(() =>
   import("./pages/PrivacyPolicyPage"),
@@ -124,6 +125,14 @@ function AppShell({ children, showAds = true }) {
 
 function PublicRoute() {
   const currentPath = getCurrentPath();
+
+  if (currentPath === "/auth/callback") {
+    return (
+      <Suspense fallback={<LoadingScreen />}>
+        <AuthCallbackPage />
+      </Suspense>
+    );
+  }
 
   if (currentPath === "/privacy") {
     return (
