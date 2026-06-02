@@ -18,35 +18,23 @@ const slideImages = [
   onboardingSupport,
 ];
 
-export default function WelcomePage({
-  onFinish,
-}) {
-  const { t } =
-    useLanguageContext();
+export default function WelcomePage({ onFinish }) {
+  const { t } = useLanguageContext();
 
-  const [currentSlide, setCurrentSlide] =
-    useState(0);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const touchStartX = useRef(null);
   const touchEndX = useRef(null);
 
-  const slides = t.onboarding.map(
-    (slide, index) => ({
-      ...slide,
-      image: slideImages[index],
-    }),
-  );
+  const slides = t.onboarding.map((slide, index) => ({
+    ...slide,
+    image: slideImages[index],
+  }));
 
-  const isLastSlide =
-    currentSlide === slides.length - 1;
+  const isLastSlide = currentSlide === slides.length - 1;
 
   function goToSlide(index) {
-    setCurrentSlide(
-      Math.max(
-        0,
-        Math.min(index, slides.length - 1),
-      ),
-    );
+    setCurrentSlide(Math.max(0, Math.min(index, slides.length - 1)));
   }
 
   function handleNext() {
@@ -67,28 +55,20 @@ export default function WelcomePage({
   }
 
   function handleTouchStart(event) {
-    touchStartX.current =
-      event.touches[0].clientX;
-
+    touchStartX.current = event.touches[0].clientX;
     touchEndX.current = null;
   }
 
   function handleTouchMove(event) {
-    touchEndX.current =
-      event.touches[0].clientX;
+    touchEndX.current = event.touches[0].clientX;
   }
 
   function handleTouchEnd() {
-    if (
-      touchStartX.current === null ||
-      touchEndX.current === null
-    ) {
+    if (touchStartX.current === null || touchEndX.current === null) {
       return;
     }
 
-    const distance =
-      touchStartX.current -
-      touchEndX.current;
+    const distance = touchStartX.current - touchEndX.current;
 
     if (distance > 45) {
       handleNext();
@@ -108,14 +88,14 @@ export default function WelcomePage({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       style={{
-        minHeight: "100vh",
+        minHeight: "100dvh",
         position: "relative",
         overflow: "hidden",
         display: "flex",
         flexDirection: "column",
         color: "#ffffff",
-        background:
-          "linear-gradient(180deg, #020806 0%, #000000 100%)",
+        background: "linear-gradient(180deg, #020806 0%, #000000 100%)",
+        paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 86px)",
       }}
     >
       <img
@@ -167,7 +147,7 @@ export default function WelcomePage({
           position: "relative",
           zIndex: 5,
           width: "100%",
-          padding: "26px 22px 0",
+          padding: "calc(env(safe-area-inset-top, 0px) + 14px) 22px 0",
           display: "flex",
           justifyContent: "flex-end",
         }}
@@ -192,6 +172,7 @@ export default function WelcomePage({
           zIndex: 4,
           flex: 1,
           overflow: "hidden",
+          minHeight: 0,
         }}
       >
         <div
@@ -199,8 +180,7 @@ export default function WelcomePage({
             height: "100%",
             display: "flex",
             transform: `translateX(-${currentSlide * 100}%)`,
-            transition:
-              "transform 420ms cubic-bezier(.22,.8,.24,1)",
+            transition: "transform 420ms cubic-bezier(.22,.8,.24,1)",
           }}
         >
           {slides.map((slide) => (
@@ -217,8 +197,9 @@ export default function WelcomePage({
               <div
                 style={{
                   position: "relative",
-                  height: "62vh",
-                  minHeight: "390px",
+                  height: "48vh",
+                  minHeight: "300px",
+                  maxHeight: "420px",
                   overflow: "hidden",
                 }}
               >
@@ -231,8 +212,7 @@ export default function WelcomePage({
                     objectFit: "cover",
                     objectPosition: "center",
                     display: "block",
-                    filter:
-                      "drop-shadow(0 0 36px rgba(24,255,173,.18))",
+                    filter: "drop-shadow(0 0 36px rgba(24,255,173,.18))",
                   }}
                 />
 
@@ -241,7 +221,7 @@ export default function WelcomePage({
                     position: "absolute",
                     inset: 0,
                     background:
-                      "radial-gradient(circle at center, transparent 42%, rgba(0,0,0,.22) 72%, rgba(0,0,0,.72) 100%)",
+                      "radial-gradient(circle at center, transparent 42%, rgba(0,0,0,.2) 72%, rgba(0,0,0,.7) 100%)",
                     pointerEvents: "none",
                   }}
                 />
@@ -252,7 +232,7 @@ export default function WelcomePage({
                     left: 0,
                     right: 0,
                     bottom: 0,
-                    height: "42%",
+                    height: "38%",
                     background:
                       "linear-gradient(180deg, transparent 0%, rgba(0,0,0,.72) 52%, #000000 100%)",
                     pointerEvents: "none",
@@ -262,7 +242,7 @@ export default function WelcomePage({
 
               <div
                 style={{
-                  padding: "0 24px 28px",
+                  padding: "0 24px 18px",
                   textAlign: "center",
                 }}
               >
@@ -272,7 +252,7 @@ export default function WelcomePage({
                     fontSize: "12px",
                     fontWeight: 800,
                     letterSpacing: "2px",
-                    marginBottom: "10px",
+                    marginBottom: "8px",
                   }}
                 >
                   {slide.eyebrow}
@@ -280,10 +260,10 @@ export default function WelcomePage({
 
                 <h1
                   style={{
-                    fontSize: "32px",
+                    fontSize: "30px",
                     lineHeight: 1,
-                    letterSpacing: "-1.1px",
-                    marginBottom: "13px",
+                    letterSpacing: "-1px",
+                    marginBottom: "11px",
                   }}
                 >
                   {slide.title}
@@ -293,8 +273,8 @@ export default function WelcomePage({
                   style={{
                     maxWidth: "340px",
                     color: "rgba(255,255,255,.68)",
-                    fontSize: "15px",
-                    lineHeight: 1.52,
+                    fontSize: "14px",
+                    lineHeight: 1.48,
                     margin: "0 auto",
                   }}
                 >
@@ -311,9 +291,9 @@ export default function WelcomePage({
           position: "relative",
           zIndex: 6,
           width: "100%",
-          padding: "0 22px 26px",
+          padding: "0 22px",
           display: "grid",
-          gap: "18px",
+          gap: "14px",
         }}
       >
         <div
@@ -330,10 +310,7 @@ export default function WelcomePage({
               onClick={() => goToSlide(index)}
               aria-label={`Slide ${index + 1}`}
               style={{
-                width:
-                  index === currentSlide
-                    ? "28px"
-                    : "8px",
+                width: index === currentSlide ? "28px" : "8px",
                 height: "8px",
                 borderRadius: "999px",
                 border: 0,
@@ -355,10 +332,7 @@ export default function WelcomePage({
         <div
           style={{
             display: "grid",
-            gridTemplateColumns:
-              currentSlide > 0
-                ? "auto 1fr"
-                : "1fr",
+            gridTemplateColumns: currentSlide > 0 ? "auto 1fr" : "1fr",
             gap: "12px",
           }}
         >
@@ -368,8 +342,8 @@ export default function WelcomePage({
               type="button"
               onClick={handlePrevious}
               style={{
-                minHeight: "50px",
-                width: "54px",
+                minHeight: "52px",
+                width: "56px",
                 fontSize: "18px",
               }}
             >
@@ -378,23 +352,17 @@ export default function WelcomePage({
           ) : null}
 
           <button
-            className={
-              isLastSlide
-                ? "primary-btn"
-                : "ghost-btn"
-            }
+            className={isLastSlide ? "primary-btn" : "ghost-btn"}
             type="button"
             onClick={handleNext}
             style={{
               width: "100%",
-              minHeight: "50px",
+              minHeight: "52px",
               fontSize: "15px",
               fontWeight: 800,
             }}
           >
-            {isLastSlide
-              ? t.startOnboarding
-              : t.next}
+            {isLastSlide ? t.startOnboarding : t.next}
           </button>
         </div>
       </div>
