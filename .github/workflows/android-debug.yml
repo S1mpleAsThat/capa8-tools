@@ -43,6 +43,7 @@ jobs:
           echo "VITE_ADSENSE_BANNER_SLOT=${{ secrets.VITE_ADSENSE_BANNER_SLOT }}" >> .env.production
           echo "VITE_ADSENSE_ACTION_SLOT=${{ secrets.VITE_ADSENSE_ACTION_SLOT }}" >> .env.production
           echo "VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}" >> .env.production
+          echo "VITE_GOOGLE_ANDROID_CLIENT_ID=${{ secrets.VITE_GOOGLE_ANDROID_CLIENT_ID }}" >> .env.production
           echo "VITE_GOOGLE_REDIRECT_URI=${{ secrets.VITE_GOOGLE_REDIRECT_URI }}" >> .env.production
 
       - name: Build web app

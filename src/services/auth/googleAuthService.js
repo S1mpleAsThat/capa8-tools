@@ -34,17 +34,30 @@ function getGoogleClientId() {
   );
 }
 
+function getGoogleAndroidClientId() {
+  return (
+    import.meta.env
+      .VITE_GOOGLE_ANDROID_CLIENT_ID ||
+    import.meta.env
+      .VITE_GOOGLE_CLIENT_ID ||
+    ""
+  );
+}
+
 function normalizeGoogleUser({
   id = "",
   name = "",
   email = "",
   picture = "",
   accessToken = "",
+  idToken = "",
 } = {}) {
   return {
     provider: "google",
 
     accessToken,
+
+    idToken,
 
     user: {
       id,
@@ -88,7 +101,6 @@ export async function loadGoogleScript() {
         return true;
       }
 
-      // eslint-disable-next-line no-await-in-loop
       await wait(100);
     }
 
@@ -141,7 +153,6 @@ export async function loadGoogleScript() {
       return true;
     }
 
-    // eslint-disable-next-line no-await-in-loop
     await wait(100);
   }
 
@@ -289,9 +300,72 @@ async function signInWithGoogleWeb() {
 }
 
 async function signInWithGoogleAndroid() {
-  throw new Error(
-    "Google Login Android aún no está implementado. Utiliza la versión web/PWA.",
+  const clientId =
+    getGoogleAndroidClientId();
+
+  if (!clientId) {
+    throw new Error(
+      "Falta configurar VITE_GOOGLE_ANDROID_CLIENT_ID.",
+    );
+  }
+
+  const {
+    GoogleSignIn,
+  } = await import(
+    "@capawesome/capacitor-google-sign-in"
   );
+
+  await GoogleSignIn.initialize({
+    clientId,
+    scopes: [
+      "openid",
+      "email",
+      "profile",
+    ],
+  });
+
+  const result =
+    await GoogleSignIn.signIn();
+
+  const user =
+    result?.user ||
+    result ||
+    {};
+
+  return normalizeGoogleUser({
+    id:
+      user.id ||
+      user.userId ||
+      user.sub ||
+      user.email ||
+      "",
+
+    name:
+      user.name ||
+      user.displayName ||
+      user.givenName ||
+      "Usuario Google",
+
+    email:
+      user.email ||
+      "",
+
+    picture:
+      user.imageUrl ||
+      user.picture ||
+      user.photoUrl ||
+      "",
+
+    accessToken:
+      result?.accessToken ||
+      user.accessToken ||
+      "",
+
+    idToken:
+      result?.idToken ||
+      user.idToken ||
+      "",
+  });
 }
 
 export async function signInWithGoogle() {
@@ -303,5 +377,21 @@ export async function signInWithGoogle() {
 }
 
 export async function signOutFromGoogle() {
-  return true;
+  if (!isAndroidNative()) {
+    return true;
+  }
+
+  try {
+    const {
+      GoogleSignIn,
+    } = await import(
+      "@capawesome/capacitor-google-sign-in"
+    );
+
+    await GoogleSignIn.signOut();
+
+    return true;
+  } catch {
+    return true;
+  }
 }
