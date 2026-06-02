@@ -385,7 +385,7 @@ export async function signOutFromGoogle() {
 
     await GoogleSignIn.signOut();
 
-    return t1rue;
+    return true;
   } catch {
     return true;
   }
