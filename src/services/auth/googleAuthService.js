@@ -34,16 +34,6 @@ function getGoogleClientId() {
   );
 }
 
-function getGoogleAndroidClientId() {
-  return (
-    import.meta.env
-      .VITE_GOOGLE_ANDROID_CLIENT_ID ||
-    import.meta.env
-      .VITE_GOOGLE_CLIENT_ID ||
-    ""
-  );
-}
-
 function normalizeGoogleUser({
   id = "",
   name = "",
@@ -101,6 +91,7 @@ export async function loadGoogleScript() {
         return true;
       }
 
+      // eslint-disable-next-line no-await-in-loop
       await wait(100);
     }
 
@@ -153,6 +144,7 @@ export async function loadGoogleScript() {
       return true;
     }
 
+    // eslint-disable-next-line no-await-in-loop
     await wait(100);
   }
 
@@ -301,71 +293,74 @@ async function signInWithGoogleWeb() {
 
 async function signInWithGoogleAndroid() {
   const clientId =
-    getGoogleAndroidClientId();
+    getGoogleClientId();
 
   if (!clientId) {
     throw new Error(
-      "Falta configurar VITE_GOOGLE_ANDROID_CLIENT_ID.",
+      "Falta configurar VITE_GOOGLE_CLIENT_ID.",
     );
   }
 
-  const {
-    GoogleSignIn,
-  } = await import(
-    "@capawesome/capacitor-google-sign-in"
-  );
+  try {
+    const {
+      GoogleSignIn,
+    } = await import(
+      "@capawesome/capacitor-google-sign-in"
+    );
 
-  await GoogleSignIn.initialize({
-    clientId,
-    scopes: [
-      "openid",
-      "email",
-      "profile",
-    ],
-  });
+    await GoogleSignIn.initialize({
+      clientId,
 
-  const result =
-    await GoogleSignIn.signIn();
+      scopes: [
+        "openid",
+        "email",
+        "profile",
+      ],
+    });
 
-  const user =
-    result?.user ||
-    result ||
-    {};
+    const result =
+      await GoogleSignIn.signIn();
 
-  return normalizeGoogleUser({
-    id:
-      user.id ||
-      user.userId ||
-      user.sub ||
-      user.email ||
-      "",
+    console.log(
+      "[GOOGLE_ANDROID_RESULT]",
+      result,
+    );
 
-    name:
-      user.name ||
-      user.displayName ||
-      user.givenName ||
-      "Usuario Google",
+    return normalizeGoogleUser({
+      id:
+        result.userId ||
+        result.email ||
+        "",
 
-    email:
-      user.email ||
-      "",
+      name:
+        result.displayName ||
+        result.givenName ||
+        "Usuario Google",
 
-    picture:
-      user.imageUrl ||
-      user.picture ||
-      user.photoUrl ||
-      "",
+      email:
+        result.email ||
+        "",
 
-    accessToken:
-      result?.accessToken ||
-      user.accessToken ||
-      "",
+      picture:
+        result.imageUrl ||
+        "",
 
-    idToken:
-      result?.idToken ||
-      user.idToken ||
-      "",
-  });
+      accessToken:
+        result.accessToken ||
+        "",
+
+      idToken:
+        result.idToken ||
+        "",
+    });
+  } catch (error) {
+    console.error(
+      "[GOOGLE_ANDROID_ERROR]",
+      error,
+    );
+
+    throw error;
+  }
 }
 
 export async function signInWithGoogle() {
@@ -390,7 +385,7 @@ export async function signOutFromGoogle() {
 
     await GoogleSignIn.signOut();
 
-    return true;
+    return t1rue;
   } catch {
     return true;
   }
