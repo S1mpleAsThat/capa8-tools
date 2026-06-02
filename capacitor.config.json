@@ -1,5 +1,14 @@
 {
   "appId": "com.capa8tools.app",
   "appName": "CAPA 8 TOOLS",
-  "webDir": "dist"
+  "webDir": "dist",
+  "plugins": {
+    "GoogleAuth": {
+      "scopes": [
+        "profile",
+        "email"
+      ],
+      "forceCodeForRefreshToken": true
+    }
+  }
 }

@@ -1,5 +1,9 @@
 // src/services/auth/googleAuthService.js
 
+import {
+  Capacitor,
+} from "@capacitor/core";
+
 const GOOGLE_SCRIPT_ID =
   "capa8-google-gsi-script";
 
@@ -9,10 +13,63 @@ const GOOGLE_SCRIPT_SRC =
 const GOOGLE_USERINFO_URL =
   "https://www.googleapis.com/oauth2/v3/userinfo";
 
+const GOOGLE_SCOPES = [
+  "profile",
+  "email",
+];
+
 function wait(ms = 100) {
   return new Promise((resolve) => {
     setTimeout(resolve, ms);
   });
+}
+
+function isAndroidNative() {
+  return (
+    Capacitor.isNativePlatform() &&
+    Capacitor.getPlatform() === "android"
+  );
+}
+
+function getGoogleClientId() {
+  return (
+    import.meta.env
+      .VITE_GOOGLE_CLIENT_ID ||
+    import.meta.env
+      .VITE_GOOGLE_WEB_CLIENT_ID ||
+    ""
+  );
+}
+
+function normalizeGoogleUser({
+  id = "",
+  name = "",
+  email = "",
+  picture = "",
+  accessToken = "",
+  idToken = "",
+} = {}) {
+  return {
+    provider: "google",
+
+    accessToken,
+
+    idToken,
+
+    user: {
+      id,
+
+      name:
+        name ||
+        "Usuario Google",
+
+      email,
+
+      picture:
+        picture ||
+        "",
+    },
+  };
 }
 
 export async function loadGoogleScript() {
@@ -123,7 +180,7 @@ async function fetchGoogleUser(
       errorText =
         await response.text();
     } catch {
-      return null;
+      throw new Error(errorText);
     }
 
     throw new Error(errorText);
@@ -132,10 +189,9 @@ async function fetchGoogleUser(
   return response.json();
 }
 
-export async function signInWithGoogle() {
+async function signInWithGoogleWeb() {
   const clientId =
-    import.meta.env
-      .VITE_GOOGLE_CLIENT_ID;
+    getGoogleClientId();
 
   if (!clientId) {
     throw new Error(
@@ -195,30 +251,29 @@ export async function signInWithGoogle() {
                         accessToken,
                       );
 
-                    resolve({
-                      provider:
-                        "google",
+                    resolve(
+                      normalizeGoogleUser(
+                        {
+                          id:
+                            profile.sub ||
+                            "",
 
-                      accessToken,
+                          name:
+                            profile.name ||
+                            "Usuario Google",
 
-                      user: {
-                        id:
-                          profile.sub ||
-                          "",
+                          email:
+                            profile.email ||
+                            "",
 
-                        name:
-                          profile.name ||
-                          "Usuario Google",
+                          picture:
+                            profile.picture ||
+                            "",
 
-                        email:
-                          profile.email ||
-                          "",
-
-                        picture:
-                          profile.picture ||
-                          "",
-                      },
-                    });
+                          accessToken,
+                        },
+                      ),
+                    );
                   } catch (
                     error
                   ) {
@@ -241,4 +296,104 @@ export async function signInWithGoogle() {
       }
     },
   );
+}
+
+async function signInWithGoogleAndroid() {
+  try {
+    const {
+      GoogleAuth,
+    } = await import(
+      "@codetrix-studio/capacitor-google-auth"
+    );
+
+    const clientId =
+      getGoogleClientId();
+
+    await GoogleAuth.initialize({
+      clientId:
+        clientId ||
+        undefined,
+
+      scopes:
+        GOOGLE_SCOPES,
+
+      grantOfflineAccess:
+        true,
+    });
+
+    const response =
+      await GoogleAuth.signIn();
+
+    const accessToken =
+      response?.authentication
+        ?.accessToken ||
+      response?.accessToken ||
+      "";
+
+    const idToken =
+      response?.authentication
+        ?.idToken ||
+      response?.idToken ||
+      "";
+
+    return normalizeGoogleUser({
+      id:
+        response?.id ||
+        response?.userId ||
+        response?.email ||
+        "",
+
+      name:
+        response?.name ||
+        response?.displayName ||
+        "Usuario Google",
+
+      email:
+        response?.email ||
+        "",
+
+      picture:
+        response?.imageUrl ||
+        response?.photoUrl ||
+        response?.picture ||
+        "",
+
+      accessToken,
+
+      idToken,
+    });
+  } catch (error) {
+    throw new Error(
+      error?.message ||
+        "No se pudo iniciar sesión con Google en Android.",
+    );
+  }
+}
+
+export async function signInWithGoogle() {
+  if (isAndroidNative()) {
+    return signInWithGoogleAndroid();
+  }
+
+  return signInWithGoogleWeb();
+}
+
+export async function signOutFromGoogle() {
+  if (!isAndroidNative()) {
+    return true;
+  }
+
+  try {
+    const {
+      GoogleAuth,
+    } = await import(
+      "@codetrix-studio/capacitor-google-auth"
+    );
+
+    await GoogleAuth.signOut();
+
+    return true;
+  } catch {
+    return false;
+  }
 }

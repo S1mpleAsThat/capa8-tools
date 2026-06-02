@@ -29,9 +29,18 @@ export default function LoginPage() {
     t,
   } = useLanguage();
 
-  const [localError, setLocalError] = useState("");
-  const [pendingLanguage, setPendingLanguage] = useState(language);
-  const [languageStatus, setLanguageStatus] = useState("");
+  const [localError, setLocalError] =
+    useState("");
+
+  const [
+    pendingLanguage,
+    setPendingLanguage,
+  ] = useState(language);
+
+  const [
+    languageStatus,
+    setLanguageStatus,
+  ] = useState("");
 
   useEffect(() => {
     setPendingLanguage(language);
@@ -53,7 +62,7 @@ export default function LoginPage() {
       await loginGoogle();
     } catch (error) {
       setLocalError(
-        error.message ||
+        error?.message ||
           "No se pudo iniciar sesión con Google.",
       );
     }
@@ -66,7 +75,7 @@ export default function LoginPage() {
       await loginDemo();
     } catch (error) {
       setLocalError(
-        error.message ||
+        error?.message ||
           "No se pudo iniciar sesión demo.",
       );
     }
@@ -230,8 +239,7 @@ export default function LoginPage() {
               background:
                 "rgba(120,0,0,.12)",
               borderRadius: "16px",
-              padding:
-                "12px 14px",
+              padding: "12px 14px",
             }}
           >
             <p
@@ -290,7 +298,8 @@ export default function LoginPage() {
           >
             <span
               style={{
-                color: "rgba(255,255,255,.46)",
+                color:
+                  "rgba(255,255,255,.46)",
                 fontSize: "10px",
                 fontWeight: 800,
                 letterSpacing: ".8px",
@@ -303,21 +312,30 @@ export default function LoginPage() {
             <select
               value={pendingLanguage}
               onChange={(event) =>
-                setPendingLanguage(event.target.value)
+                setPendingLanguage(
+                  event.target.value,
+                )
               }
               style={{
                 minHeight: "40px",
                 width: "100%",
                 borderRadius: "14px",
-                border: "1px solid rgba(0,255,170,.14)",
-                background: "rgba(0,0,0,.42)",
+                border:
+                  "1px solid rgba(0,255,170,.14)",
+                background:
+                  "rgba(0,0,0,.42)",
                 color: "#ffffff",
                 padding: "0 12px",
                 outline: "none",
               }}
             >
-              <option value="es">{t.spanish}</option>
-              <option value="en">{t.english}</option>
+              <option value="es">
+                {t.spanish}
+              </option>
+
+              <option value="en">
+                {t.english}
+              </option>
             </select>
           </label>
 

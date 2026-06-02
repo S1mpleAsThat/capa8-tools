@@ -2,6 +2,7 @@
 
 import {
   signInWithGoogle,
+  signOutFromGoogle,
 } from "./googleAuthService";
 
 export const AUTH_STORAGE_KEY =
@@ -81,6 +82,14 @@ export async function loginGoogle() {
   const session = {
     provider: "google",
 
+    accessToken:
+      googleResult.accessToken ||
+      "",
+
+    idToken:
+      googleResult.idToken ||
+      "",
+
     user: {
       id:
         googleResult.user.id,
@@ -108,6 +117,16 @@ export async function loginGoogle() {
 }
 
 export async function logout() {
+  const currentSession =
+    restoreSession();
+
+  if (
+    currentSession?.provider ===
+    "google"
+  ) {
+    await signOutFromGoogle();
+  }
+
   clearSession();
 
   return true;

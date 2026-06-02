@@ -61,7 +61,7 @@ export function AuthProvider({
       return newSession;
     } catch (error) {
       const message =
-        error.message ||
+        error?.message ||
         "No se pudo iniciar sesión con Google.";
 
       setAuthError(message);
@@ -87,7 +87,7 @@ export function AuthProvider({
       return newSession;
     } catch (error) {
       const message =
-        error.message ||
+        error?.message ||
         "No se pudo iniciar sesión demo.";
 
       setAuthError(message);
