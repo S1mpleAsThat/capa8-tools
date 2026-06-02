@@ -170,9 +170,9 @@ async function signInWithGoogleWeb() {
 }
 
 async function signInWithGoogleAndroid() {
-  const clientId = getGoogleClientId();
+  const webClientId = getGoogleClientId();
 
-  if (!clientId) {
+  if (!webClientId) {
     throw new Error("Falta configurar VITE_GOOGLE_CLIENT_ID.");
   }
 
@@ -182,7 +182,8 @@ async function signInWithGoogleAndroid() {
     );
 
     await GoogleSignIn.initialize({
-      clientId,
+      clientId: webClientId,
+      serverClientId: webClientId,
     });
 
     const result = await GoogleSignIn.signIn();
@@ -190,14 +191,15 @@ async function signInWithGoogleAndroid() {
     console.log("[GOOGLE_ANDROID_RESULT]", result);
 
     return normalizeGoogleUser({
-      id: result.userId || result.email || "",
+      id: result.userId || result.id || result.email || "",
       name:
         result.displayName ||
+        result.name ||
         result.givenName ||
         result.email ||
         "Usuario Google",
       email: result.email || "",
-      picture: result.imageUrl || "",
+      picture: result.imageUrl || result.picture || result.photoUrl || "",
       accessToken: result.accessToken || "",
       idToken: result.idToken || "",
     });
@@ -225,7 +227,9 @@ export async function signOutFromGoogle() {
       "@capawesome/capacitor-google-sign-in"
     );
 
-    await GoogleSignIn.signOut();
+    if (typeof GoogleSignIn.signOut === "function") {
+      await GoogleSignIn.signOut();
+    }
 
     return true;
   } catch (error) {
