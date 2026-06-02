@@ -197,9 +197,9 @@ export default function WelcomePage({ onFinish }) {
               <div
                 style={{
                   position: "relative",
-                  height: "48vh",
-                  minHeight: "300px",
-                  maxHeight: "420px",
+                  height: "52vh",
+                  minHeight: "330px",
+                  maxHeight: "455px",
                   overflow: "hidden",
                 }}
               >
@@ -242,7 +242,7 @@ export default function WelcomePage({ onFinish }) {
 
               <div
                 style={{
-                  padding: "0 24px 18px",
+                  padding: "10px 24px 20px",
                   textAlign: "center",
                 }}
               >
