@@ -13,7 +13,11 @@ import GoogleAdSlot from "./GoogleAdSlot";
 
 export default function BottomBannerAd() {
   useEffect(() => {
-    if (shouldShowAds() && isNativeAndroidAds()) {
+    if (!shouldShowAds()) {
+      return;
+    }
+
+    if (isNativeAndroidAds()) {
       showNativeBannerAd();
     }
   }, []);

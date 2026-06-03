@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { generateAIContent } from "../services/aiService";
+import { trackAdAction } from "../services/ads/adService";
 import {
   getUserItem,
   getUserScopedKey,
@@ -92,6 +93,7 @@ function normalizeTemplates(items, currentTemplates) {
 
 function downloadJsonFile(fileName, data) {
   const fileContent = JSON.stringify(data, null, 2);
+
   const blob = new Blob([fileContent], {
     type: "application/json",
   });
@@ -350,6 +352,7 @@ export default function ToolDetail({ tool, onBack }) {
       setDisplayedOutput(generatedOutput);
       setHistory(nextHistory);
       saveHistory(nextHistory);
+      trackAdAction("ai-generator");
     } finally {
       setIsGenerating(false);
     }
@@ -376,7 +379,6 @@ export default function ToolDetail({ tool, onBack }) {
       }, 2000);
     }
   }
-
   function handleClearOutput() {
     setOutput("");
     setDisplayedOutput("");
@@ -575,6 +577,7 @@ export default function ToolDetail({ tool, onBack }) {
 
     setChecklistItems(nextChecklist);
     saveChecklist(nextChecklist);
+    trackAdAction("checklist-toggle");
   }
 
   function handleAddChecklistItem() {
@@ -597,6 +600,7 @@ export default function ToolDetail({ tool, onBack }) {
     setChecklistItems(nextChecklist);
     saveChecklist(nextChecklist);
     setNewChecklistItem("");
+    trackAdAction("checklist-add-item");
   }
 
   function handleDeleteChecklistItem(id) {
@@ -604,6 +608,7 @@ export default function ToolDetail({ tool, onBack }) {
 
     setChecklistItems(nextChecklist);
     saveChecklist(nextChecklist);
+    trackAdAction("checklist-delete-item");
   }
 
   function handleResetChecklist() {
@@ -612,6 +617,7 @@ export default function ToolDetail({ tool, onBack }) {
     setChecklistItems(nextChecklist);
     saveChecklist(nextChecklist);
     setNewChecklistItem("");
+    trackAdAction("checklist-reset");
   }
 
   function handleLoadChecklistTemplate(template) {
@@ -630,6 +636,7 @@ export default function ToolDetail({ tool, onBack }) {
     setChecklistItems(nextChecklist);
     saveChecklist(nextChecklist);
     setNewChecklistItem("");
+    trackAdAction("checklist-load-template");
   }
 
   function handleTemplateRecent(template) {
@@ -651,7 +658,6 @@ export default function ToolDetail({ tool, onBack }) {
     }
 
     const safeFavorites = normalizeTemplates(favoriteTemplates, quickTemplates);
-
     const exists = safeFavorites.some((item) => item.id === template.id);
 
     const nextFavorites = exists
@@ -660,6 +666,7 @@ export default function ToolDetail({ tool, onBack }) {
 
     setFavoriteTemplates(nextFavorites);
     saveFavorites(nextFavorites);
+    trackAdAction("template-favorite");
   }
 
   async function handleTemplateCopy(template) {
@@ -668,8 +675,8 @@ export default function ToolDetail({ tool, onBack }) {
     }
 
     await handleCopy(template.text);
-
     handleTemplateRecent(template);
+    trackAdAction("template-copy");
   }
 
   function handleUseTemplate(template) {
@@ -687,6 +694,7 @@ export default function ToolDetail({ tool, onBack }) {
     }
 
     handleTemplateRecent(template);
+    trackAdAction("template-use-ai");
   }
 
   function isTemplateFavorite(id) {

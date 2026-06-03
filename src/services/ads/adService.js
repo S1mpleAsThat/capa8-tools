@@ -61,11 +61,13 @@ export async function initializeNativeAdMob() {
     const { AdMob } = await getAdMobModule();
 
     await AdMob.initialize({
-      initializeForTesting: false,
+      initializeForTesting: true,
       requestTrackingAuthorization: false,
     });
 
     admobInitialized = true;
+    console.log("[ADMOB_INIT_OK]");
+
     return true;
   } catch (error) {
     console.error("[ADMOB_INIT_ERROR]", error);
@@ -100,10 +102,12 @@ export async function showNativeBannerAd() {
       adSize: BannerAdSize.BANNER,
       position: BannerAdPosition.BOTTOM_CENTER,
       margin: 0,
-      isTesting: false,
+      isTesting: true,
     });
 
     admobBannerVisible = true;
+    console.log("[ADMOB_BANNER_OK]");
+
     return true;
   } catch (error) {
     console.error("[ADMOB_BANNER_ERROR]", error);
@@ -151,19 +155,23 @@ export async function showNativeInterstitialAd(reason = "action") {
 
     await AdMob.prepareInterstitial({
       adId: ADMOB_INTERSTITIAL_ID,
-      isTesting: false,
+      isTesting: true,
     });
 
     await AdMob.showInterstitial();
 
     admobInterstitialPreparing = false;
+    console.log("[ADMOB_INTERSTITIAL_OK]", reason);
+
     return true;
   } catch (error) {
     admobInterstitialPreparing = false;
+
     console.error("[ADMOB_INTERSTITIAL_ERROR]", {
       reason,
       error,
     });
+
     return false;
   }
 }
@@ -205,6 +213,12 @@ export function trackAdAction(reason = "action") {
 
   const nextCount = getStoredActionCount() + 1;
   setStoredActionCount(nextCount);
+
+  console.log("[AD_ACTION_TRACKED]", {
+    reason,
+    count: nextCount,
+    frequency: ACTION_FREQUENCY,
+  });
 
   if (ACTION_FREQUENCY > 0 && nextCount % ACTION_FREQUENCY === 0) {
     requestInterstitialAd(reason);

@@ -27,6 +27,12 @@ import {
 
 import { shouldHideAdsForPro } from "./services/subscription/subscriptionConfig";
 
+import {
+  initializeNativeAdMob,
+  isNativeAndroidAds,
+  showNativeBannerAd,
+} from "./services/ads/adService";
+
 import AppTopBar from "./components/AppTopBar";
 import HeroSection from "./components/HeroSection";
 import ToolsSection from "./components/ToolsSection";
@@ -94,7 +100,10 @@ function AppShell({ children, showAds = true }) {
     <main
       className="app"
       style={{
-        paddingBottom: showAds ? "110px" : undefined,
+        paddingBottom:
+          showAds && !isNativeAndroidAds()
+            ? "110px"
+            : undefined,
       }}
     >
       <img className="app-bg" src={heroBg} alt="" />
@@ -189,6 +198,18 @@ function AppContent() {
 
   const publicRoute = PublicRoute();
   const showAds = !shouldHideAdsForPro();
+
+  useEffect(() => {
+    if (!showAds || !isNativeAndroidAds()) {
+      return;
+    }
+
+    initializeNativeAdMob().then((initialized) => {
+      if (initialized) {
+        showNativeBannerAd();
+      }
+    });
+  }, [showAds]);
 
   const availableTools = useMemo(
     () => [
