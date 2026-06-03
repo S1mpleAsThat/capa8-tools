@@ -1,16 +1,31 @@
 // src/services/ads/adService.js
 
+import { Capacitor } from "@capacitor/core";
+
 import {
   ACTION_FREQUENCY,
   ACTION_SLOT,
   ADS_ENABLED,
+  ADMOB_BANNER_ID,
+  ADMOB_INTERSTITIAL_ID,
   BANNER_SLOT,
 } from "./adConfig";
 
 const AD_ACTION_COUNT_KEY = "capa8-ads-action-count";
 const INTERSTITIAL_EVENT = "capa8-interstitial-ad";
 
+let admobInitialized = false;
+let admobBannerVisible = false;
+let admobInterstitialPreparing = false;
+
 export { ACTION_SLOT, BANNER_SLOT };
+
+export function isNativeAndroidAds() {
+  return (
+    Capacitor.isNativePlatform() &&
+    Capacitor.getPlatform() === "android"
+  );
+}
 
 function getStoredActionCount() {
   try {
@@ -29,6 +44,130 @@ function setStoredActionCount(count) {
   }
 }
 
+async function getAdMobModule() {
+  return import("@capacitor-community/admob");
+}
+
+export async function initializeNativeAdMob() {
+  if (!ADS_ENABLED || !isNativeAndroidAds()) {
+    return false;
+  }
+
+  if (admobInitialized) {
+    return true;
+  }
+
+  try {
+    const { AdMob } = await getAdMobModule();
+
+    await AdMob.initialize({
+      initializeForTesting: false,
+      requestTrackingAuthorization: false,
+    });
+
+    admobInitialized = true;
+    return true;
+  } catch (error) {
+    console.error("[ADMOB_INIT_ERROR]", error);
+    return false;
+  }
+}
+
+export async function showNativeBannerAd() {
+  if (!ADS_ENABLED || !isNativeAndroidAds()) {
+    return false;
+  }
+
+  if (admobBannerVisible) {
+    return true;
+  }
+
+  try {
+    const {
+      AdMob,
+      BannerAdPosition,
+      BannerAdSize,
+    } = await getAdMobModule();
+
+    const initialized = await initializeNativeAdMob();
+
+    if (!initialized) {
+      return false;
+    }
+
+    await AdMob.showBanner({
+      adId: ADMOB_BANNER_ID,
+      adSize: BannerAdSize.BANNER,
+      position: BannerAdPosition.BOTTOM_CENTER,
+      margin: 0,
+      isTesting: false,
+    });
+
+    admobBannerVisible = true;
+    return true;
+  } catch (error) {
+    console.error("[ADMOB_BANNER_ERROR]", error);
+    return false;
+  }
+}
+
+export async function hideNativeBannerAd() {
+  if (!isNativeAndroidAds() || !admobBannerVisible) {
+    return true;
+  }
+
+  try {
+    const { AdMob } = await getAdMobModule();
+
+    await AdMob.hideBanner();
+
+    admobBannerVisible = false;
+    return true;
+  } catch (error) {
+    console.error("[ADMOB_HIDE_BANNER_ERROR]", error);
+    return false;
+  }
+}
+
+export async function showNativeInterstitialAd(reason = "action") {
+  if (
+    !ADS_ENABLED ||
+    !isNativeAndroidAds() ||
+    admobInterstitialPreparing
+  ) {
+    return false;
+  }
+
+  try {
+    const { AdMob } = await getAdMobModule();
+
+    const initialized = await initializeNativeAdMob();
+
+    if (!initialized) {
+      return false;
+    }
+
+    admobInterstitialPreparing = true;
+
+    await AdMob.prepareInterstitial({
+      adId: ADMOB_INTERSTITIAL_ID,
+      isTesting: false,
+    });
+
+    await AdMob.showInterstitial();
+
+    admobInterstitialPreparing = false;
+    return true;
+  } catch (error) {
+    admobInterstitialPreparing = false;
+    console.error("[ADMOB_INTERSTITIAL_ERROR]", {
+      reason,
+      error,
+    });
+    return false;
+  }
+}
+
 export function shouldShowAds() {
   return ADS_ENABLED;
 }
@@ -36,6 +175,11 @@ export function shouldShowAds() {
 export function requestInterstitialAd(reason = "action") {
   if (!ADS_ENABLED) {
     return false;
+  }
+
+  if (isNativeAndroidAds()) {
+    showNativeInterstitialAd(reason);
+    return true;
   }
 
   try {

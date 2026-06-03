@@ -42,9 +42,13 @@ jobs:
           echo "VITE_ADSENSE_CLIENT_ID=${{ secrets.VITE_ADSENSE_CLIENT_ID }}" >> .env.production
           echo "VITE_ADSENSE_BANNER_SLOT=${{ secrets.VITE_ADSENSE_BANNER_SLOT }}" >> .env.production
           echo "VITE_ADSENSE_ACTION_SLOT=${{ secrets.VITE_ADSENSE_ACTION_SLOT }}" >> .env.production
+          echo "VITE_ADMOB_APP_ID=${{ secrets.VITE_ADMOB_APP_ID }}" >> .env.production
+          echo "VITE_ADMOB_BANNER_ID=${{ secrets.VITE_ADMOB_BANNER_ID }}" >> .env.production
+          echo "VITE_ADMOB_INTERSTITIAL_ID=${{ secrets.VITE_ADMOB_INTERSTITIAL_ID }}" >> .env.production
           echo "VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }}" >> .env.production
           echo "VITE_GOOGLE_ANDROID_CLIENT_ID=${{ secrets.VITE_GOOGLE_ANDROID_CLIENT_ID }}" >> .env.production
           echo "VITE_GOOGLE_REDIRECT_URI=${{ secrets.VITE_GOOGLE_REDIRECT_URI }}" >> .env.production
+          echo "VITE_GOOGLE_ANDROID_CALLBACK_URI=${{ secrets.VITE_GOOGLE_ANDROID_CALLBACK_URI }}" >> .env.production
 
       - name: Build web app
         run: npm run build

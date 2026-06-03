@@ -1,14 +1,28 @@
 // src/components/ads/BottomBannerAd.jsx
 
+import { useEffect } from "react";
+
 import {
   BANNER_SLOT,
+  isNativeAndroidAds,
   shouldShowAds,
+  showNativeBannerAd,
 } from "../../services/ads/adService";
 
 import GoogleAdSlot from "./GoogleAdSlot";
 
 export default function BottomBannerAd() {
+  useEffect(() => {
+    if (shouldShowAds() && isNativeAndroidAds()) {
+      showNativeBannerAd();
+    }
+  }, []);
+
   if (!shouldShowAds()) {
+    return null;
+  }
+
+  if (isNativeAndroidAds()) {
     return null;
   }
 

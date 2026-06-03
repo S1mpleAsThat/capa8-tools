@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import {
   ACTION_SLOT,
+  isNativeAndroidAds,
   shouldShowAds,
   subscribeInterstitialAd,
 } from "../../services/ads/adService";
@@ -14,12 +15,16 @@ export default function InterstitialAdHost() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    if (isNativeAndroidAds()) {
+      return undefined;
+    }
+
     return subscribeInterstitialAd(() => {
       setVisible(true);
     });
   }, []);
 
-  if (!shouldShowAds() || !visible) {
+  if (!shouldShowAds() || !visible || isNativeAndroidAds()) {
     return null;
   }
 
