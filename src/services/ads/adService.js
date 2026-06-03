@@ -99,7 +99,7 @@ export async function showNativeBannerAd() {
 
     await AdMob.showBanner({
       adId: ADMOB_BANNER_ID,
-      adSize: BannerAdSize.BANNER,
+      adSize: BannerAdSize.ADAPTIVE_BANNER,
       position: BannerAdPosition.BOTTOM_CENTER,
       margin: 0,
       isTesting: true,
@@ -116,7 +116,7 @@ export async function showNativeBannerAd() {
 }
 
 export async function hideNativeBannerAd() {
-  if (!isNativeAndroidAds() || !admobBannerVisible) {
+  if (!isNativeAndroidAds()) {
     return true;
   }
 

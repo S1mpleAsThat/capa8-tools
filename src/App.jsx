@@ -28,6 +28,7 @@ import {
 import { shouldHideAdsForPro } from "./services/subscription/subscriptionConfig";
 
 import {
+  hideNativeBannerAd,
   initializeNativeAdMob,
   isNativeAndroidAds,
   showNativeBannerAd,
@@ -117,10 +118,10 @@ function AppShell({ children, showAds = true }) {
         <div
           style={{
             position: "fixed",
-            left: "50%",
-            bottom: "12px",
-            transform: "translateX(-50%)",
-            width: "min(92vw, 420px)",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            width: "100%",
             zIndex: 9999,
             pointerEvents: "auto",
           }}
@@ -197,10 +198,15 @@ function AppContent() {
   const { t } = useLanguage();
 
   const publicRoute = PublicRoute();
-  const showAds = !shouldHideAdsForPro();
+  const showAds = isAuthenticated && !shouldHideAdsForPro();
 
   useEffect(() => {
-    if (!showAds || !isNativeAndroidAds()) {
+    if (!isNativeAndroidAds()) {
+      return;
+    }
+
+    if (!showAds) {
+      hideNativeBannerAd();
       return;
     }
 
