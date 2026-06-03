@@ -28,9 +28,9 @@ import {
 import { shouldHideAdsForPro } from "./services/subscription/subscriptionConfig";
 
 import {
-  hideNativeBannerAd,
   initializeNativeAdMob,
   isNativeAndroidAds,
+  removeNativeBannerAd,
   showNativeBannerAd,
 } from "./services/ads/adService";
 
@@ -229,19 +229,31 @@ function AppContent() {
 
   useEffect(() => {
     if (!isNativeAndroidAds()) {
-      return;
+      return undefined;
     }
 
-    if (!showBottomBanner) {
-      hideNativeBannerAd();
-      return;
-    }
+    let cancelled = false;
 
-    initializeNativeAdMob().then((initialized) => {
-      if (initialized) {
-        showNativeBannerAd();
+    async function syncNativeBanner() {
+      if (!showBottomBanner) {
+        await removeNativeBannerAd();
+        return;
       }
-    });
+
+      await initializeNativeAdMob();
+
+      if (cancelled) {
+        return;
+      }
+
+      await showNativeBannerAd();
+    }
+
+    syncNativeBanner();
+
+    return () => {
+      cancelled = true;
+    };
   }, [showBottomBanner]);
 
   useEffect(() => {

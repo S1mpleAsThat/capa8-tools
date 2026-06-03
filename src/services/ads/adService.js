@@ -20,10 +20,7 @@ let admobInterstitialPreparing = false;
 export { ACTION_SLOT, BANNER_SLOT };
 
 export function isNativeAndroidAds() {
-  return (
-    Capacitor.isNativePlatform() &&
-    Capacitor.getPlatform() === "android"
-  );
+  return Capacitor.isNativePlatform() && Capacitor.getPlatform() === "android";
 }
 
 function getStoredActionCount() {
@@ -45,6 +42,12 @@ function setStoredActionCount(count) {
 
 async function getAdMobModule() {
   return import("@capacitor-community/admob");
+}
+
+function wait(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 export async function initializeNativeAdMob() {
@@ -74,6 +77,24 @@ export async function initializeNativeAdMob() {
   }
 }
 
+export async function removeNativeBannerAd() {
+  if (!isNativeAndroidAds()) {
+    return true;
+  }
+
+  try {
+    const { AdMob } = await getAdMobModule();
+
+    await AdMob.removeBanner();
+    console.log("[ADMOB_BANNER_REMOVE_OK]");
+
+    return true;
+  } catch (error) {
+    console.warn("[ADMOB_BANNER_REMOVE_WARN]", error);
+    return false;
+  }
+}
+
 export async function showNativeBannerAd() {
   if (!ADS_ENABLED || !isNativeAndroidAds()) {
     return false;
@@ -93,14 +114,12 @@ export async function showNativeBannerAd() {
     }
 
     try {
-      await AdMob.hideBanner();
+      await AdMob.removeBanner();
     } catch {
-      // No debe bloquear el montaje limpio del banner.
+      // No bloquea el montaje limpio.
     }
 
-    await new Promise((resolve) => {
-      setTimeout(resolve, 180);
-    });
+    await wait(220);
 
     await AdMob.showBanner({
       adId: ADMOB_BANNER_ID,
@@ -110,7 +129,7 @@ export async function showNativeBannerAd() {
       isTesting: true,
     });
 
-    console.log("[ADMOB_BANNER_FORCED_OK]");
+    console.log("[ADMOB_BANNER_SHOW_OK]");
 
     return true;
   } catch (error) {
@@ -120,29 +139,11 @@ export async function showNativeBannerAd() {
 }
 
 export async function hideNativeBannerAd() {
-  if (!isNativeAndroidAds()) {
-    return true;
-  }
-
-  try {
-    const { AdMob } = await getAdMobModule();
-
-    await AdMob.hideBanner();
-    console.log("[ADMOB_BANNER_HIDE_OK]");
-
-    return true;
-  } catch (error) {
-    console.error("[ADMOB_HIDE_BANNER_ERROR]", error);
-    return false;
-  }
+  return removeNativeBannerAd();
 }
 
 export async function showNativeInterstitialAd(reason = "action") {
-  if (
-    !ADS_ENABLED ||
-    !isNativeAndroidAds() ||
-    admobInterstitialPreparing
-  ) {
+  if (!ADS_ENABLED || !isNativeAndroidAds() || admobInterstitialPreparing) {
     return false;
   }
 
