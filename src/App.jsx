@@ -49,12 +49,8 @@ const LoginPage = lazy(() => import("./pages/LoginPage"));
 const LanguageGatePage = lazy(() => import("./pages/LanguageGatePage"));
 const AuthCallbackPage = lazy(() => import("./pages/AuthCallbackPage"));
 
-const PrivacyPolicyPage = lazy(() =>
-  import("./pages/PrivacyPolicyPage"),
-);
-const TermsOfServicePage = lazy(() =>
-  import("./pages/TermsOfServicePage"),
-);
+const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
+const TermsOfServicePage = lazy(() => import("./pages/TermsOfServicePage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const ProPage = lazy(() => import("./pages/ProPage"));
 
@@ -96,13 +92,13 @@ function LoadingScreen() {
   );
 }
 
-function AppShell({ children, showAds = true }) {
+function AppShell({ children, showBottomBanner = false }) {
   return (
     <main
       className="app"
       style={{
         paddingBottom:
-          showAds && !isNativeAndroidAds()
+          showBottomBanner && !isNativeAndroidAds()
             ? "110px"
             : undefined,
       }}
@@ -114,7 +110,7 @@ function AppShell({ children, showAds = true }) {
 
       {children}
 
-      {showAds ? (
+      {showBottomBanner ? (
         <div
           style={{
             position: "fixed",
@@ -146,7 +142,7 @@ function PublicRoute() {
 
   if (currentPath === "/privacy") {
     return (
-      <AppShell showAds={false}>
+      <AppShell showBottomBanner={false}>
         <Suspense fallback={<LoadingScreen />}>
           <PrivacyPolicyPage />
         </Suspense>
@@ -156,7 +152,7 @@ function PublicRoute() {
 
   if (currentPath === "/terms") {
     return (
-      <AppShell showAds={false}>
+      <AppShell showBottomBanner={false}>
         <Suspense fallback={<LoadingScreen />}>
           <TermsOfServicePage />
         </Suspense>
@@ -166,7 +162,7 @@ function PublicRoute() {
 
   if (currentPath === "/contact") {
     return (
-      <AppShell showAds={false}>
+      <AppShell showBottomBanner={false}>
         <Suspense fallback={<LoadingScreen />}>
           <ContactPage />
         </Suspense>
@@ -176,7 +172,7 @@ function PublicRoute() {
 
   if (currentPath === "/pro") {
     return (
-      <AppShell showAds={false}>
+      <AppShell showBottomBanner={false}>
         <Suspense fallback={<LoadingScreen />}>
           <ProPage />
         </Suspense>
@@ -189,8 +185,7 @@ function PublicRoute() {
 
 function AppContent() {
   const [selectedToolId, setSelectedToolId] = useState(null);
-  const [hasFinishedOnboarding, setHasFinishedOnboarding] =
-    useState(false);
+  const [hasFinishedOnboarding, setHasFinishedOnboarding] = useState(false);
   const [hasSelectedPublicLanguage, setHasSelectedPublicLanguage] =
     useState(() => hasPublicLanguage());
 
@@ -198,24 +193,7 @@ function AppContent() {
   const { t } = useLanguage();
 
   const publicRoute = PublicRoute();
-  const showAds = isAuthenticated && !shouldHideAdsForPro();
-
-  useEffect(() => {
-    if (!isNativeAndroidAds()) {
-      return;
-    }
-
-    if (!showAds) {
-      hideNativeBannerAd();
-      return;
-    }
-
-    initializeNativeAdMob().then((initialized) => {
-      if (initialized) {
-        showNativeBannerAd();
-      }
-    });
-  }, [showAds]);
+  const canShowAds = isAuthenticated && !shouldHideAdsForPro();
 
   const availableTools = useMemo(
     () => [
@@ -243,11 +221,28 @@ function AppContent() {
       return null;
     }
 
-    return (
-      availableTools.find((tool) => tool.id === selectedToolId) ||
-      null
-    );
+    return availableTools.find((tool) => tool.id === selectedToolId) || null;
   }, [availableTools, selectedToolId]);
+
+  const showBottomBanner = canShowAds && !selectedTool;
+  const showInterstitialAds = canShowAds;
+
+  useEffect(() => {
+    if (!isNativeAndroidAds()) {
+      return;
+    }
+
+    if (!showBottomBanner) {
+      hideNativeBannerAd();
+      return;
+    }
+
+    initializeNativeAdMob().then((initialized) => {
+      if (initialized) {
+        showNativeBannerAd();
+      }
+    });
+  }, [showBottomBanner]);
 
   useEffect(() => {
     if (!isAuthenticated || !user?.id) {
@@ -256,9 +251,7 @@ function AppContent() {
     }
 
     const savedToolId = getUserItem(user.id, ACTIVE_TOOL_KEY, "");
-    const exists = availableTools.some(
-      (tool) => tool.id === savedToolId,
-    );
+    const exists = availableTools.some((tool) => tool.id === savedToolId);
 
     setSelectedToolId(exists ? savedToolId : null);
   }, [isAuthenticated, user?.id, availableTools]);
@@ -302,9 +295,7 @@ function AppContent() {
   if (!isAuthenticated && !hasFinishedOnboarding) {
     return (
       <Suspense fallback={<LoadingScreen />}>
-        <WelcomePage
-          onFinish={() => setHasFinishedOnboarding(true)}
-        />
+        <WelcomePage onFinish={() => setHasFinishedOnboarding(true)} />
       </Suspense>
     );
   }
@@ -318,18 +309,15 @@ function AppContent() {
   }
 
   return (
-    <AppShell showAds={showAds}>
-      {showAds ? <InterstitialAdHost /> : null}
+    <AppShell showBottomBanner={showBottomBanner}>
+      {showInterstitialAds ? <InterstitialAdHost /> : null}
 
       {selectedTool ? (
         <>
           <AppTopBar onBack={handleBackHome} />
 
           <Suspense fallback={<LoadingScreen />}>
-            <ToolDetail
-              tool={selectedTool}
-              onBack={handleBackHome}
-            />
+            <ToolDetail tool={selectedTool} onBack={handleBackHome} />
           </Suspense>
         </>
       ) : (
