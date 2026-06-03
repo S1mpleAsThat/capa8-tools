@@ -75,12 +75,12 @@ export async function initializeNativeAdMob() {
   }
 }
 
-export async function showNativeBannerAd() {
+export async function showNativeBannerAd(force = false) {
   if (!ADS_ENABLED || !isNativeAndroidAds()) {
     return false;
   }
 
-  if (admobBannerVisible) {
+  if (admobBannerVisible && !force) {
     return true;
   }
 
@@ -97,6 +97,16 @@ export async function showNativeBannerAd() {
       return false;
     }
 
+    if (force && admobBannerVisible) {
+      try {
+        await AdMob.hideBanner();
+      } catch {
+        // No debe bloquear la restauración del banner.
+      }
+
+      admobBannerVisible = false;
+    }
+
     await AdMob.showBanner({
       adId: ADMOB_BANNER_ID,
       adSize: BannerAdSize.ADAPTIVE_BANNER,
@@ -110,6 +120,7 @@ export async function showNativeBannerAd() {
 
     return true;
   } catch (error) {
+    admobBannerVisible = false;
     console.error("[ADMOB_BANNER_ERROR]", error);
     return false;
   }
@@ -128,6 +139,7 @@ export async function hideNativeBannerAd() {
     admobBannerVisible = false;
     return true;
   } catch (error) {
+    admobBannerVisible = false;
     console.error("[ADMOB_HIDE_BANNER_ERROR]", error);
     return false;
   }

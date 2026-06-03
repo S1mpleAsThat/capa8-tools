@@ -13,9 +13,7 @@ import {
 import GoogleAdSlot from "./GoogleAdSlot";
 
 function isTextInputElement(element) {
-  if (!element) {
-    return false;
-  }
+  if (!element) return false;
 
   const tagName = element.tagName?.toLowerCase();
 
@@ -33,9 +31,7 @@ export default function BottomBannerAd() {
   const restoreTimeoutRef = useRef(null);
 
   useEffect(() => {
-    if (!shouldShowAds()) {
-      return undefined;
-    }
+    if (!shouldShowAds()) return undefined;
 
     function clearRestoreTimeout() {
       if (restoreTimeoutRef.current) {
@@ -44,7 +40,7 @@ export default function BottomBannerAd() {
       }
     }
 
-    function hideBannerForKeyboard() {
+    function hideBanner() {
       clearRestoreTimeout();
 
       keyboardVisibleRef.current = true;
@@ -55,7 +51,7 @@ export default function BottomBannerAd() {
       }
     }
 
-    function showBannerAfterKeyboard() {
+    function restoreBanner() {
       clearRestoreTimeout();
 
       restoreTimeoutRef.current = setTimeout(() => {
@@ -63,59 +59,56 @@ export default function BottomBannerAd() {
         setKeyboardOpen(false);
 
         if (isNativeAndroidAds()) {
-          showNativeBannerAd();
+          showNativeBannerAd(true);
         }
-      }, 450);
+      }, 500);
+    }
+
+    function isKeyboardProbablyOpen() {
+      if (!window.visualViewport) return false;
+
+      return window.innerHeight - window.visualViewport.height > 150;
     }
 
     function handleFocusIn(event) {
       if (isTextInputElement(event.target)) {
-        hideBannerForKeyboard();
+        hideBanner();
       }
     }
 
     function handleFocusOut() {
-      setTimeout(() => {
-        if (!isTextInputElement(document.activeElement)) {
-          showBannerAfterKeyboard();
-        }
-      }, 250);
+      restoreBanner();
     }
 
     function handleViewportResize() {
-      if (!window.visualViewport) {
-        return;
-      }
-
-      const heightDifference =
-        window.innerHeight - window.visualViewport.height;
-
-      if (heightDifference > 150) {
-        hideBannerForKeyboard();
+      if (isKeyboardProbablyOpen()) {
+        hideBanner();
         return;
       }
 
       if (keyboardVisibleRef.current) {
-        showBannerAfterKeyboard();
+        restoreBanner();
       }
     }
 
-    function handleWindowResize() {
-      if (!isTextInputElement(document.activeElement)) {
-        showBannerAfterKeyboard();
+    function handleUserInteraction() {
+      if (!isKeyboardProbablyOpen()) {
+        restoreBanner();
       }
     }
 
     document.addEventListener("focusin", handleFocusIn);
     document.addEventListener("focusout", handleFocusOut);
-    window.addEventListener("resize", handleWindowResize);
+    document.addEventListener("touchend", handleUserInteraction);
+    document.addEventListener("pointerup", handleUserInteraction);
+    window.addEventListener("resize", handleViewportResize);
 
     if (window.visualViewport) {
       window.visualViewport.addEventListener("resize", handleViewportResize);
     }
 
     if (isNativeAndroidAds()) {
-      showNativeBannerAd();
+      showNativeBannerAd(true);
     }
 
     return () => {
@@ -123,7 +116,9 @@ export default function BottomBannerAd() {
 
       document.removeEventListener("focusin", handleFocusIn);
       document.removeEventListener("focusout", handleFocusOut);
-      window.removeEventListener("resize", handleWindowResize);
+      document.removeEventListener("touchend", handleUserInteraction);
+      document.removeEventListener("pointerup", handleUserInteraction);
+      window.removeEventListener("resize", handleViewportResize);
 
       if (window.visualViewport) {
         window.visualViewport.removeEventListener(
@@ -138,13 +133,9 @@ export default function BottomBannerAd() {
     };
   }, []);
 
-  if (!shouldShowAds() || keyboardOpen) {
-    return null;
-  }
+  if (!shouldShowAds() || keyboardOpen) return null;
 
-  if (isNativeAndroidAds()) {
-    return null;
-  }
+  if (isNativeAndroidAds()) return null;
 
   return (
     <div
