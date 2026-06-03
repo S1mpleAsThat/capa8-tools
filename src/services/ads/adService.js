@@ -15,7 +15,6 @@ const AD_ACTION_COUNT_KEY = "capa8-ads-action-count";
 const INTERSTITIAL_EVENT = "capa8-interstitial-ad";
 
 let admobInitialized = false;
-let admobBannerVisible = false;
 let admobInterstitialPreparing = false;
 
 export { ACTION_SLOT, BANNER_SLOT };
@@ -75,13 +74,9 @@ export async function initializeNativeAdMob() {
   }
 }
 
-export async function showNativeBannerAd(force = false) {
+export async function showNativeBannerAd() {
   if (!ADS_ENABLED || !isNativeAndroidAds()) {
     return false;
-  }
-
-  if (admobBannerVisible && !force) {
-    return true;
   }
 
   try {
@@ -97,15 +92,15 @@ export async function showNativeBannerAd(force = false) {
       return false;
     }
 
-    if (force && admobBannerVisible) {
-      try {
-        await AdMob.hideBanner();
-      } catch {
-        // No debe bloquear la restauración del banner.
-      }
-
-      admobBannerVisible = false;
+    try {
+      await AdMob.hideBanner();
+    } catch {
+      // No debe bloquear el montaje limpio del banner.
     }
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, 180);
+    });
 
     await AdMob.showBanner({
       adId: ADMOB_BANNER_ID,
@@ -115,12 +110,10 @@ export async function showNativeBannerAd(force = false) {
       isTesting: true,
     });
 
-    admobBannerVisible = true;
-    console.log("[ADMOB_BANNER_OK]");
+    console.log("[ADMOB_BANNER_FORCED_OK]");
 
     return true;
   } catch (error) {
-    admobBannerVisible = false;
     console.error("[ADMOB_BANNER_ERROR]", error);
     return false;
   }
@@ -135,11 +128,10 @@ export async function hideNativeBannerAd() {
     const { AdMob } = await getAdMobModule();
 
     await AdMob.hideBanner();
+    console.log("[ADMOB_BANNER_HIDE_OK]");
 
-    admobBannerVisible = false;
     return true;
   } catch (error) {
-    admobBannerVisible = false;
     console.error("[ADMOB_HIDE_BANNER_ERROR]", error);
     return false;
   }
