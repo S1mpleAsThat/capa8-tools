@@ -1,6 +1,7 @@
 // src/components/ads/BottomBannerAd.jsx
 
 import { useEffect, useRef, useState } from "react";
+import { Keyboard } from "@capacitor/keyboard";
 
 import {
   BANNER_SLOT,
@@ -13,7 +14,9 @@ import {
 import GoogleAdSlot from "./GoogleAdSlot";
 
 function isTextInputElement(element) {
-  if (!element) return false;
+  if (!element) {
+    return false;
+  }
 
   const tagName = element.tagName?.toLowerCase();
 
@@ -27,7 +30,6 @@ function isTextInputElement(element) {
 
 export default function BottomBannerAd() {
   const [keyboardOpen, setKeyboardOpen] = useState(false);
-
   const restoreTimeoutRef = useRef(null);
 
   useEffect(() => {
@@ -44,7 +46,6 @@ export default function BottomBannerAd() {
 
     async function hideBanner() {
       clearRestoreTimeout();
-
       setKeyboardOpen(true);
 
       if (isNativeAndroidAds()) {
@@ -52,7 +53,7 @@ export default function BottomBannerAd() {
       }
     }
 
-    async function restoreBanner() {
+    function restoreBanner(delay = 450) {
       clearRestoreTimeout();
 
       restoreTimeoutRef.current = setTimeout(async () => {
@@ -61,7 +62,7 @@ export default function BottomBannerAd() {
         if (isNativeAndroidAds()) {
           await showNativeBannerAd(true);
         }
-      }, 500);
+      }, delay);
     }
 
     function isKeyboardProbablyOpen() {
@@ -69,24 +70,26 @@ export default function BottomBannerAd() {
         return false;
       }
 
-      return (
-        window.innerHeight -
-          window.visualViewport.height >
-        150
-      );
+      return window.innerHeight - window.visualViewport.height > 150;
     }
 
     function handleFocusIn(event) {
-      if (isTextInputElement(event.target)) {
+      if (!isNativeAndroidAds() && isTextInputElement(event.target)) {
         hideBanner();
       }
     }
 
     function handleFocusOut() {
-      restoreBanner();
+      if (!isNativeAndroidAds()) {
+        restoreBanner();
+      }
     }
 
     function handleViewportResize() {
+      if (isNativeAndroidAds()) {
+        return;
+      }
+
       if (isKeyboardProbablyOpen()) {
         hideBanner();
         return;
@@ -95,76 +98,51 @@ export default function BottomBannerAd() {
       restoreBanner();
     }
 
-    function handleTouchEnd() {
-      if (!isKeyboardProbablyOpen()) {
-        restoreBanner();
-      }
-    }
-
-    document.addEventListener(
-      "focusin",
-      handleFocusIn,
-    );
-
-    document.addEventListener(
-      "focusout",
-      handleFocusOut,
-    );
-
-    document.addEventListener(
-      "touchend",
-      handleTouchEnd,
-    );
-
-    window.addEventListener(
-      "resize",
-      handleViewportResize,
-    );
-
-    if (window.visualViewport) {
-      window.visualViewport.addEventListener(
-        "resize",
-        handleViewportResize,
-      );
-    }
+    let keyboardShowListener = null;
+    let keyboardHideListener = null;
 
     if (isNativeAndroidAds()) {
       showNativeBannerAd(true);
+
+      Keyboard.addListener("keyboardWillShow", () => {
+        hideBanner();
+      }).then((listener) => {
+        keyboardShowListener = listener;
+      });
+
+      Keyboard.addListener("keyboardDidHide", () => {
+        restoreBanner(650);
+      }).then((listener) => {
+        keyboardHideListener = listener;
+      });
+    } else {
+      document.addEventListener("focusin", handleFocusIn);
+      document.addEventListener("focusout", handleFocusOut);
+      window.addEventListener("resize", handleViewportResize);
+
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener("resize", handleViewportResize);
+      }
     }
 
     return () => {
       clearRestoreTimeout();
 
-      document.removeEventListener(
-        "focusin",
-        handleFocusIn,
-      );
-
-      document.removeEventListener(
-        "focusout",
-        handleFocusOut,
-      );
-
-      document.removeEventListener(
-        "touchend",
-        handleTouchEnd,
-      );
-
-      window.removeEventListener(
-        "resize",
-        handleViewportResize,
-      );
+      document.removeEventListener("focusin", handleFocusIn);
+      document.removeEventListener("focusout", handleFocusOut);
+      window.removeEventListener("resize", handleViewportResize);
 
       if (window.visualViewport) {
-        window.visualViewport.removeEventListener(
-          "resize",
-          handleViewportResize,
-        );
+        window.visualViewport.removeEventListener("resize", handleViewportResize);
       }
 
-      // IMPORTANTE:
-      // NO ocultar el banner aquí.
-      // Android estaba dejándolo oculto permanentemente.
+      if (keyboardShowListener) {
+        keyboardShowListener.remove();
+      }
+
+      if (keyboardHideListener) {
+        keyboardHideListener.remove();
+      }
     };
   }, []);
 
@@ -188,8 +166,7 @@ export default function BottomBannerAd() {
         overflow: "hidden",
         borderRadius: "22px",
         padding: "8px",
-        border:
-          "1px solid rgba(0,255,170,.14)",
+        border: "1px solid rgba(0,255,170,.14)",
         background:
           "linear-gradient(180deg, rgba(5,18,14,.92), rgba(0,0,0,.88))",
       }}
