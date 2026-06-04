@@ -1,0 +1,125 @@
+// src/components/UserBadge.jsx
+
+import useAuth from "../hooks/useAuth";
+
+export default function UserBadge() {
+  const { user, logout, loading } = useAuth();
+
+  if (!user) {
+    return null;
+  }
+
+  const providerLabel = user.provider === "google" ? "GOOGLE" : "DEMO";
+  const initial = user.name?.[0] || "U";
+
+  async function handleLogout() {
+    await logout();
+  }
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        padding: "10px 12px",
+        border: "1px solid rgba(0,255,170,.12)",
+        background:
+          "linear-gradient(180deg, rgba(10,18,16,.88), rgba(0,0,0,.78))",
+        borderRadius: "18px",
+        backdropFilter: "blur(12px)",
+        maxWidth: "62vw",
+      }}
+    >
+      {user.picture ? (
+        <img
+          src={user.picture}
+          alt={user.name}
+          style={{
+            width: "38px",
+            height: "38px",
+            borderRadius: "50%",
+            objectFit: "cover",
+            border: "1px solid rgba(0,255,170,.28)",
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: "38px",
+            height: "38px",
+            borderRadius: "50%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "rgba(0,255,170,.12)",
+            color: "#18ffad",
+            fontSize: "12px",
+            fontWeight: 800,
+            border: "1px solid rgba(0,255,170,.18)",
+          }}
+        >
+          {initial}
+        </div>
+      )}
+
+      <div
+        style={{
+          minWidth: 0,
+        }}
+      >
+        <p
+          style={{
+            fontSize: "12px",
+            fontWeight: 800,
+            color: "#ffffff",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {user.name}
+        </p>
+
+        <p
+          style={{
+            fontSize: "10px",
+            color: "rgba(255,255,255,.62)",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {user.email}
+        </p>
+
+        <p
+          style={{
+            fontSize: "9px",
+            letterSpacing: ".8px",
+            color: "#18ffad",
+            textTransform: "uppercase",
+            marginTop: "2px",
+          }}
+        >
+          {providerLabel}
+        </p>
+      </div>
+
+      <button
+        className="ghost-btn"
+        type="button"
+        onClick={handleLogout}
+        disabled={loading}
+        style={{
+          minHeight: "34px",
+          padding: "0 12px",
+          fontSize: "11px",
+          whiteSpace: "nowrap",
+        }}
+      >
+        Salir
+      </button>
+    </div>
+  );
+}
