@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">CAPA 8 TOOLS</string>
+    <string name="title_activity_main">CAPA 8 TOOLS</string>
+    <string name="package_name">com.capa8tools.app</string>
+    <string name="custom_url_scheme">com.capa8tools.app</string>
+</resources>
