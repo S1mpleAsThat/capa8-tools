@@ -5,8 +5,6 @@ import {
   signOutFromGoogle,
 } from "./googleAuthService";
 
-import { supabase } from "../../lib/supabase";
-
 export const AUTH_STORAGE_KEY =
   "capa8-auth-session";
 
@@ -17,6 +15,13 @@ const mockUser = {
   picture: "",
   provider: "demo",
 };
+
+async function getSupabaseClient() {
+  const { supabase } =
+    await import("../../lib/supabase");
+
+  return supabase;
+}
 
 export function saveSession(
   session,
@@ -119,13 +124,17 @@ export async function loginGoogle() {
 }
 
 /* ==========================================
-   SUPABASE EMAIL AUTH
+   SUPABASE EMAIL AUTH - LAZY LOAD
+   No se carga al iniciar Android.
    ========================================== */
 
 export async function registerWithEmail(
   email,
   password,
 ) {
+  const supabase =
+    await getSupabaseClient();
+
   const { data, error } =
     await supabase.auth.signUp({
       email,
@@ -143,6 +152,9 @@ export async function loginWithEmail(
   email,
   password,
 ) {
+  const supabase =
+    await getSupabaseClient();
+
   const { data, error } =
     await supabase.auth.signInWithPassword({
       email,
@@ -167,7 +179,14 @@ export async function logout() {
     await signOutFromGoogle();
   }
 
-  await supabase.auth.signOut();
+  try {
+    const supabase =
+      await getSupabaseClient();
+
+    await supabase.auth.signOut();
+  } catch {
+    // No bloquear logout si Supabase no está disponible en Android.
+  }
 
   clearSession();
 
