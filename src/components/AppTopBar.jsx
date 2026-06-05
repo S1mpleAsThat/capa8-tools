@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import logoMain from "../assets/branding/logo-main.png";
+import logoSymbolPremium from "../assets/branding/logo-symbol-premium.png";
 import glowHorizontal2 from "../assets/effects/glow-horizontal2.png";
 
 import useAuth from "../hooks/useAuth";
@@ -41,7 +42,7 @@ function getProviderLabel(provider) {
       return "GOOGLE";
 
     case "email":
-      return "Usuario";
+      return "EMAIL";
 
     case "demo":
       return "DEMO";
@@ -58,12 +59,17 @@ export default function AppTopBar({ onBack }) {
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   const [pendingLanguage, setPendingLanguage] = useState(language);
   const [languageStatus, setLanguageStatus] = useState("");
+  const [avatarHasError, setAvatarHasError] = useState(false);
 
   const panelRef = useRef(null);
 
   useEffect(() => {
     setPendingLanguage(language);
   }, [language]);
+
+  useEffect(() => {
+    setAvatarHasError(false);
+  }, [user?.id, user?.picture]);
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -89,6 +95,7 @@ export default function AppTopBar({ onBack }) {
 
   const providerLabel = getProviderLabel(user.provider);
   const initial = user.name?.[0] || "U";
+  const avatarSource = user.picture || logoSymbolPremium;
 
   function handleTogglePanel() {
     setIsPanelOpen((currentValue) => !currentValue);
@@ -245,11 +252,12 @@ export default function AppTopBar({ onBack }) {
           zIndex: 2,
         }}
       >
-        {user.picture ? (
+        {!avatarHasError ? (
           <img
-            src={user.picture}
+            src={avatarSource}
             alt={user.name}
             decoding="async"
+            onError={() => setAvatarHasError(true)}
             style={{
               width: "38px",
               height: "38px",

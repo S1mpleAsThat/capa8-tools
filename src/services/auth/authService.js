@@ -7,9 +7,10 @@ import {
 
 export const AUTH_STORAGE_KEY = "capa8-auth-session";
 
-const API_BASE_URL =
+const API_BASE_URL = (
   import.meta.env.VITE_API_BASE_URL ||
-  "https://capa8-tools.vercel.app";
+  "https://capa8-tools.vercel.app"
+).replace(/\/+$/, "");
 
 const mockUser = {
   id: "demo-user",
@@ -19,18 +20,55 @@ const mockUser = {
   provider: "demo",
 };
 
+function normalizeEmail(email) {
+  return String(email || "").trim().toLowerCase();
+}
+
+function getNameFromEmail(email) {
+  const cleanEmail = normalizeEmail(email);
+
+  if (!cleanEmail || !cleanEmail.includes("@")) {
+    return "Usuario CAPA 8";
+  }
+
+  return cleanEmail.split("@")[0];
+}
+
+function parseJsonSafe(value) {
+  try {
+    return JSON.parse(value);
+  } catch {
+    return null;
+  }
+}
+
 async function authApiRequest(path, payload) {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  });
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
 
-  const data = await response.json().catch(() => null);
+  let response;
 
-  if (!response.ok) {
+  try {
+    response = await fetch(`${API_BASE_URL}${cleanPath}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload || {}),
+    });
+  } catch {
+    throw new Error(
+      "No se pudo conectar con el servidor de autenticación. Revisa tu conexión e intenta nuevamente.",
+    );
+  }
+
+  const responseText = await response.text();
+  const data = responseText ? parseJsonSafe(responseText) : null;
+
+  if (!data) {
+    throw new Error("El servidor devolvió una respuesta inválida.");
+  }
+
+  if (!response.ok || data.ok === false) {
     throw new Error(
       data?.message ||
         data?.error ||
@@ -67,7 +105,14 @@ export function restoreSession() {
       return null;
     }
 
-    return JSON.parse(saved);
+    const session = JSON.parse(saved);
+
+    if (!session?.user) {
+      clearSession();
+      return null;
+    }
+
+    return session;
   } catch {
     return null;
   }
@@ -112,9 +157,24 @@ export async function loginGoogle() {
    ========================================== */
 
 export async function registerWithEmail({ name, email, password }) {
+  const cleanName = String(name || "").trim();
+  const cleanEmail = normalizeEmail(email);
+
+  if (!cleanName) {
+    throw new Error("Ingresa tu nombre.");
+  }
+
+  if (!cleanEmail) {
+    throw new Error("Ingresa tu correo electrónico.");
+  }
+
+  if (!password) {
+    throw new Error("Ingresa tu contraseña.");
+  }
+
   const data = await authApiRequest("/api/auth/register", {
-    name,
-    email,
+    name: cleanName,
+    email: cleanEmail,
     password,
   });
 
@@ -122,12 +182,51 @@ export async function registerWithEmail({ name, email, password }) {
 }
 
 export async function loginWithEmail({ email, password }) {
+  const cleanEmail = normalizeEmail(email);
+
+  if (!cleanEmail) {
+    throw new Error("Ingresa tu correo electrónico.");
+  }
+
+  if (!password) {
+    throw new Error("Ingresa tu contraseña.");
+  }
+
   const data = await authApiRequest("/api/auth/login", {
-    email,
+    email: cleanEmail,
     password,
   });
 
-  return data;
+  const apiUser = data?.user || {};
+  const apiSession = data?.session || {};
+
+  if (!apiUser?.id) {
+    throw new Error("La API no devolvió un usuario válido.");
+  }
+
+  if (!apiSession?.accessToken) {
+    throw new Error("La API no devolvió una sesión válida.");
+  }
+
+  const session = {
+    provider: "email",
+    accessToken: apiSession.accessToken || "",
+    refreshToken: apiSession.refreshToken || "",
+    user: {
+      id: apiUser.id,
+      name:
+        apiUser.name ||
+        getNameFromEmail(apiUser.email || cleanEmail),
+      email: normalizeEmail(apiUser.email || cleanEmail),
+      picture: apiUser.picture || "",
+      provider: "email",
+    },
+    createdAt: new Date().toISOString(),
+  };
+
+  saveSession(session);
+
+  return session;
 }
 
 export async function logout() {

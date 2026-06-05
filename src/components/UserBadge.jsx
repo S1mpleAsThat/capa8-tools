@@ -1,5 +1,9 @@
 // src/components/UserBadge.jsx
 
+import { useEffect, useState } from "react";
+
+import logoSymbolPremium from "../assets/branding/logo-symbol-premium.png";
+
 import useAuth from "../hooks/useAuth";
 
 function getProviderLabel(provider) {
@@ -8,7 +12,7 @@ function getProviderLabel(provider) {
       return "GOOGLE";
 
     case "email":
-      return "Usuario";
+      return "EMAIL";
 
     case "demo":
       return "DEMO";
@@ -21,12 +25,19 @@ function getProviderLabel(provider) {
 export default function UserBadge() {
   const { user, logout, loading } = useAuth();
 
+  const [avatarHasError, setAvatarHasError] = useState(false);
+
+  useEffect(() => {
+    setAvatarHasError(false);
+  }, [user?.id, user?.picture]);
+
   if (!user) {
     return null;
   }
 
   const providerLabel = getProviderLabel(user.provider);
   const initial = user.name?.[0] || "U";
+  const avatarSource = user.picture || logoSymbolPremium;
 
   async function handleLogout() {
     await logout();
@@ -47,10 +58,11 @@ export default function UserBadge() {
         maxWidth: "62vw",
       }}
     >
-      {user.picture ? (
+      {!avatarHasError ? (
         <img
-          src={user.picture}
+          src={avatarSource}
           alt={user.name}
+          onError={() => setAvatarHasError(true)}
           style={{
             width: "38px",
             height: "38px",
