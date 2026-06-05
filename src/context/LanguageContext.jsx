@@ -41,6 +41,31 @@ const translations = {
     connecting: "Conectando...",
     poweredBy: "Powered by CAPA 8",
 
+    auth: {
+      loginEyebrow: "ACCESO",
+      loginTitle: "Iniciar sesión",
+      loginText:
+        "Accede a tu cuenta CAPA 8 TOOLS utilizando Google o correo electrónico.",
+      registerEyebrow: "REGISTRO",
+      registerTitle: "Crear cuenta",
+      registerText:
+        "Crea tu cuenta para sincronizar datos, historial y configuraciones.",
+      loginEmail: "Ingresar con correo",
+      createAccount: "Crear cuenta",
+      emailPlaceholder: "Correo electrónico",
+      passwordPlaceholder: "Contraseña",
+      namePlaceholder: "Nombre completo",
+      needAccount: "Crear una cuenta nueva",
+      alreadyHaveAccount: "Ya tengo una cuenta",
+      confirmEmailMessage:
+        "Tu cuenta fue creada. Revisa tu correo para confirmar tu dirección email.",
+      accountCreated: "Cuenta creada correctamente.",
+      loginError: "No se pudo iniciar sesión.",
+      registerError: "No se pudo crear la cuenta.",
+      googleError: "No se pudo iniciar sesión con Google.",
+      or: "o",
+    },
+
     heroTitle:
       "Herramientas rápidas para técnicos y creadores.",
     heroDescription:
@@ -100,25 +125,24 @@ const translations = {
     },
 
     checklist: {
-  placeholder: "Agregar nuevo paso técnico...",
-  add: "Agregar",
-  reset: "Reiniciar checklist",
-  delete: "Eliminar",
-
-  ai: {
-    resultTitle: "Resultado IA",
-    copy: "Copiar resultado",
-    saveIncident: "Guardar incidente",
-    saved: "Incidente guardado",
-    incidentsTitle: "Historial operativo",
-    reuse: "Reutilizar",
-    remove: "Eliminar",
-    empty: "No hay incidentes guardados.",
-    nextStepLoading: "Analizando siguiente paso...",
-    analyzeLoading: "Analizando checklist...",
-    solutionLoading: "Generando solución...",
-    reportLoading: "Creando reporte...",
-  },
+      placeholder: "Agregar nuevo paso técnico...",
+      add: "Agregar",
+      reset: "Reiniciar checklist",
+      delete: "Eliminar",
+      ai: {
+        resultTitle: "Resultado IA",
+        copy: "Copiar resultado",
+        saveIncident: "Guardar incidente",
+        saved: "Incidente guardado",
+        incidentsTitle: "Historial operativo",
+        reuse: "Reutilizar",
+        remove: "Eliminar",
+        empty: "No hay incidentes guardados.",
+        nextStepLoading: "Analizando siguiente paso...",
+        analyzeLoading: "Analizando checklist...",
+        solutionLoading: "Generando solución...",
+        reportLoading: "Creando reporte...",
+      },
       defaultItems: [
         "Revisar conexión a internet",
         "Verificar energía y cables",
@@ -129,8 +153,7 @@ const translations = {
         "Registrar diagnóstico final",
       ],
     },
-    
-    
+
     checklistAI: {
       eyebrow: "CHECKLIST IA",
       title: "Workflow inteligente",
@@ -306,6 +329,31 @@ const translations = {
     connecting: "Connecting...",
     poweredBy: "Powered by CAPA 8",
 
+    auth: {
+      loginEyebrow: "LOGIN",
+      loginTitle: "Sign in",
+      loginText:
+        "Access your CAPA 8 TOOLS account using Google or email.",
+      registerEyebrow: "REGISTER",
+      registerTitle: "Create account",
+      registerText:
+        "Create your account to synchronize data, history and settings.",
+      loginEmail: "Sign in with email",
+      createAccount: "Create account",
+      emailPlaceholder: "Email address",
+      passwordPlaceholder: "Password",
+      namePlaceholder: "Full name",
+      needAccount: "Create a new account",
+      alreadyHaveAccount: "I already have an account",
+      confirmEmailMessage:
+        "Your account has been created. Check your email to confirm your address.",
+      accountCreated: "Account created successfully.",
+      loginError: "Unable to sign in.",
+      registerError: "Unable to create account.",
+      googleError: "Unable to sign in with Google.",
+      or: "or",
+    },
+
     heroTitle:
       "Fast tools for technicians and creators.",
     heroDescription:
@@ -365,25 +413,24 @@ const translations = {
     },
 
     checklist: {
-  placeholder: "Add new technical step...",
-  add: "Add",
-  reset: "Reset checklist",
-  delete: "Delete",
-
-  ai: {
-    resultTitle: "AI Result",
-    copy: "Copy result",
-    saveIncident: "Save incident",
-    saved: "Incident saved",
-    incidentsTitle: "Operational history",
-    reuse: "Reuse",
-    remove: "Delete",
-    empty: "No incidents saved.",
-    nextStepLoading: "Analyzing next step...",
-    analyzeLoading: "Analyzing checklist...",
-    solutionLoading: "Generating solution...",
-    reportLoading: "Creating report...",
-  },
+      placeholder: "Add new technical step...",
+      add: "Add",
+      reset: "Reset checklist",
+      delete: "Delete",
+      ai: {
+        resultTitle: "AI Result",
+        copy: "Copy result",
+        saveIncident: "Save incident",
+        saved: "Incident saved",
+        incidentsTitle: "Operational history",
+        reuse: "Reuse",
+        remove: "Delete",
+        empty: "No incidents saved.",
+        nextStepLoading: "Analyzing next step...",
+        analyzeLoading: "Analyzing checklist...",
+        solutionLoading: "Generating solution...",
+        reportLoading: "Creating report...",
+      },
       defaultItems: [
         "Check internet connection",
         "Verify power and cables",
@@ -394,21 +441,21 @@ const translations = {
         "Register final diagnosis",
       ],
     },
-    
+
     checklistAI: {
-      eyebrow: "CHECKLIST IA",
-      title: "Workflow inteligente",
+      eyebrow: "AI CHECKLIST",
+      title: "Smart workflow",
       description:
-        "Analiza el checklist actual, detecta bloqueos, genera soluciones y crea reportes profesionales asistidos por IA.",
-      nextStep: "Sugerir siguiente paso",
-      analyze: "Analizar checklist",
-      solution: "Generar solución",
-      report: "Convertir en reporte",
-      generating: "Analizando con IA...",
-      resultTitle: "RESULTADO IA",
-      errorTitle: "ERROR IA",
+        "Analyze the current checklist, detect blockers, generate solutions and create AI-assisted professional reports.",
+      nextStep: "Suggest next step",
+      analyze: "Analyze checklist",
+      solution: "Generate solution",
+      report: "Convert to report",
+      generating: "Analyzing with AI...",
+      resultTitle: "AI RESULT",
+      errorTitle: "AI ERROR",
       error:
-        "No se pudo completar el análisis inteligente del checklist.",
+        "The intelligent checklist analysis could not be completed.",
     },
 
     templates: {
