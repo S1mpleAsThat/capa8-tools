@@ -95,7 +95,8 @@ export default function AppTopBar({ onBack }) {
 
   const providerLabel = getProviderLabel(user.provider);
   const initial = user.name?.[0] || "U";
-  const avatarSource = user.picture || logoSymbolPremium;
+  const hasCustomAvatar = Boolean(user.picture);
+  const avatarSource = hasCustomAvatar ? user.picture : logoSymbolPremium;
 
   function handleTogglePanel() {
     setIsPanelOpen((currentValue) => !currentValue);
@@ -262,9 +263,12 @@ export default function AppTopBar({ onBack }) {
               width: "38px",
               height: "38px",
               borderRadius: "50%",
-              objectFit: "cover",
+              objectFit: hasCustomAvatar ? "cover" : "contain",
+              padding: hasCustomAvatar ? 0 : "4px",
+              background: hasCustomAvatar ? "transparent" : "rgba(0,255,170,.08)",
               border: "1px solid rgba(0,255,170,.28)",
               flexShrink: 0,
+              boxSizing: "border-box",
             }}
           />
         ) : (
