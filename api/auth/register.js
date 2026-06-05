@@ -1,8 +1,27 @@
 import { createClient } from "@supabase/supabase-js";
 
+function normalizeSupabaseUrl(url = "") {
+  return url
+    .trim()
+    .replace(/\/rest\/v1\/?$/, "")
+    .replace(/\/auth\/v1\/?$/, "")
+    .replace(/\/$/, "");
+}
+
+const supabaseUrl = normalizeSupabaseUrl(
+  process.env.SUPABASE_URL ||
+    process.env.VITE_SUPABASE_URL ||
+    "",
+);
+
+const supabaseAnonKey =
+  process.env.SUPABASE_ANON_KEY ||
+  process.env.VITE_SUPABASE_ANON_KEY ||
+  "";
+
 const supabase = createClient(
-  process.env.VITE_SUPABASE_URL,
-  process.env.VITE_SUPABASE_ANON_KEY,
+  supabaseUrl,
+  supabaseAnonKey,
 );
 
 function setCors(response) {
@@ -19,11 +38,19 @@ export default async function handler(request, response) {
   }
 
   if (request.method !== "POST") {
-    return response.status(405).json({ message: "Method not allowed" });
+    return response.status(405).json({
+      message: "Method not allowed",
+    });
   }
 
   try {
     const { name, email, password } = request.body || {};
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return response.status(500).json({
+        message: "Supabase no está configurado en Vercel.",
+      });
+    }
 
     if (!email || !password) {
       return response.status(400).json({
@@ -48,9 +75,11 @@ export default async function handler(request, response) {
     }
 
     return response.status(200).json(data);
-  } catch {
+  } catch (error) {
     return response.status(500).json({
-      message: "Error interno creando cuenta.",
+      message:
+        error?.message ||
+        "Error interno creando cuenta.",
     });
   }
 }
