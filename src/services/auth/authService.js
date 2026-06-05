@@ -5,8 +5,11 @@ import {
   signOutFromGoogle,
 } from "./googleAuthService";
 
-export const AUTH_STORAGE_KEY =
-  "capa8-auth-session";
+export const AUTH_STORAGE_KEY = "capa8-auth-session";
+
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ||
+  "https://capa8-tools.vercel.app";
 
 const mockUser = {
   id: "demo-user",
@@ -16,22 +19,31 @@ const mockUser = {
   provider: "demo",
 };
 
-async function getSupabaseClient() {
-  const { supabase } =
-    await import("../../lib/supabase");
+async function authApiRequest(path, payload) {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(payload),
+  });
 
-  return supabase;
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(
+      data?.message ||
+        data?.error ||
+        "No se pudo completar la autenticación.",
+    );
+  }
+
+  return data;
 }
 
-export function saveSession(
-  session,
-) {
+export function saveSession(session) {
   try {
-    localStorage.setItem(
-      AUTH_STORAGE_KEY,
-      JSON.stringify(session),
-    );
-
+    localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
     return true;
   } catch {
     return false;
@@ -40,10 +52,7 @@ export function saveSession(
 
 export function clearSession() {
   try {
-    localStorage.removeItem(
-      AUTH_STORAGE_KEY,
-    );
-
+    localStorage.removeItem(AUTH_STORAGE_KEY);
     return true;
   } catch {
     return false;
@@ -52,10 +61,7 @@ export function clearSession() {
 
 export function restoreSession() {
   try {
-    const saved =
-      localStorage.getItem(
-        AUTH_STORAGE_KEY,
-      );
+    const saved = localStorage.getItem(AUTH_STORAGE_KEY);
 
     if (!saved) {
       return null;
@@ -70,11 +76,8 @@ export function restoreSession() {
 export async function loginDemo() {
   const session = {
     provider: "demo",
-
     user: mockUser,
-
-    createdAt:
-      new Date().toISOString(),
+    createdAt: new Date().toISOString(),
   };
 
   saveSession(session);
@@ -83,39 +86,20 @@ export async function loginDemo() {
 }
 
 export async function loginGoogle() {
-  const googleResult =
-    await signInWithGoogle();
+  const googleResult = await signInWithGoogle();
 
   const session = {
     provider: "google",
-
-    accessToken:
-      googleResult.accessToken ||
-      "",
-
-    idToken:
-      googleResult.idToken ||
-      "",
-
+    accessToken: googleResult.accessToken || "",
+    idToken: googleResult.idToken || "",
     user: {
-      id:
-        googleResult.user.id,
-
-      name:
-        googleResult.user.name,
-
-      email:
-        googleResult.user.email,
-
-      picture:
-        googleResult.user
-          .picture,
-
+      id: googleResult.user.id,
+      name: googleResult.user.name,
+      email: googleResult.user.email,
+      picture: googleResult.user.picture,
       provider: "google",
     },
-
-    createdAt:
-      new Date().toISOString(),
+    createdAt: new Date().toISOString(),
   };
 
   saveSession(session);
@@ -124,68 +108,33 @@ export async function loginGoogle() {
 }
 
 /* ==========================================
-   SUPABASE EMAIL AUTH - LAZY LOAD
-   No se carga al iniciar Android.
+   EMAIL AUTH VIA API - NO SUPABASE SDK HERE
    ========================================== */
 
-export async function registerWithEmail(
-  email,
-  password,
-) {
-  const supabase =
-    await getSupabaseClient();
-
-  const { data, error } =
-    await supabase.auth.signUp({
-      email,
-      password,
-    });
-
-  if (error) {
-    throw error;
-  }
+export async function registerWithEmail({ name, email, password }) {
+  const data = await authApiRequest("/api/auth/register", {
+    name,
+    email,
+    password,
+  });
 
   return data;
 }
 
-export async function loginWithEmail(
-  email,
-  password,
-) {
-  const supabase =
-    await getSupabaseClient();
-
-  const { data, error } =
-    await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-
-  if (error) {
-    throw error;
-  }
+export async function loginWithEmail({ email, password }) {
+  const data = await authApiRequest("/api/auth/login", {
+    email,
+    password,
+  });
 
   return data;
 }
 
 export async function logout() {
-  const currentSession =
-    restoreSession();
+  const currentSession = restoreSession();
 
-  if (
-    currentSession?.provider ===
-    "google"
-  ) {
+  if (currentSession?.provider === "google") {
     await signOutFromGoogle();
-  }
-
-  try {
-    const supabase =
-      await getSupabaseClient();
-
-    await supabase.auth.signOut();
-  } catch {
-    // No bloquear logout si Supabase no está disponible en Android.
   }
 
   clearSession();
