@@ -2,6 +2,22 @@
 
 import useAuth from "../hooks/useAuth";
 
+function getProviderLabel(provider) {
+  switch (provider) {
+    case "google":
+      return "GOOGLE";
+
+    case "email":
+      return "EMAIL";
+
+    case "demo":
+      return "DEMO";
+
+    default:
+      return "USER";
+  }
+}
+
 export default function UserBadge() {
   const { user, logout, loading } = useAuth();
 
@@ -9,7 +25,7 @@ export default function UserBadge() {
     return null;
   }
 
-  const providerLabel = user.provider === "google" ? "GOOGLE" : "DEMO";
+  const providerLabel = getProviderLabel(user.provider);
   const initial = user.name?.[0] || "U";
 
   async function handleLogout() {

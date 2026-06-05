@@ -35,6 +35,22 @@ function downloadJsonFile(fileName, data) {
   URL.revokeObjectURL(url);
 }
 
+function getProviderLabel(provider) {
+  switch (provider) {
+    case "google":
+      return "GOOGLE";
+
+    case "email":
+      return "EMAIL";
+
+    case "demo":
+      return "DEMO";
+
+    default:
+      return "USER";
+  }
+}
+
 export default function AppTopBar({ onBack }) {
   const { user, logout, loading } = useAuth();
   const { language, setLanguage, t } = useLanguage();
@@ -71,7 +87,7 @@ export default function AppTopBar({ onBack }) {
     return null;
   }
 
-  const providerLabel = user.provider === "google" ? "GOOGLE" : "DEMO";
+  const providerLabel = getProviderLabel(user.provider);
   const initial = user.name?.[0] || "U";
 
   function handleTogglePanel() {
