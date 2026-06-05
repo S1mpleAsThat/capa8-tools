@@ -15,6 +15,9 @@ import scanlines from "../assets/effects/scanlines.png";
 import useAuth from "../hooks/useAuth";
 import useLanguage from "../hooks/useLanguage";
 
+const REGISTER_SUCCESS_STORAGE_KEY =
+  "capa8-register-success";
+
 const REGISTER_SUCCESS_MESSAGE =
   "Cuenta creada correctamente.\nRevisa tu correo electrónico para confirmar tu cuenta antes de iniciar sesión.";
 
@@ -98,6 +101,23 @@ export default function LoginPage() {
   useEffect(() => {
     setPendingLanguage(language);
   }, [language]);
+
+  useEffect(() => {
+    try {
+      const savedStatus = sessionStorage.getItem(
+        REGISTER_SUCCESS_STORAGE_KEY,
+      );
+
+      if (savedStatus) {
+        setLocalStatus(savedStatus);
+        sessionStorage.removeItem(
+          REGISTER_SUCCESS_STORAGE_KEY,
+        );
+      }
+    } catch {
+      // sessionStorage may be unavailable in restricted environments.
+    }
+  }, []);
 
   function clearMessages() {
     setLocalError("");
@@ -194,6 +214,15 @@ export default function LoginPage() {
           email,
           password,
         });
+
+        try {
+          sessionStorage.setItem(
+            REGISTER_SUCCESS_STORAGE_KEY,
+            REGISTER_SUCCESS_MESSAGE,
+          );
+        } catch {
+          // sessionStorage may be unavailable in restricted environments.
+        }
 
         setName("");
         setPassword("");
