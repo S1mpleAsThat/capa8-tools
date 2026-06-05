@@ -10,8 +10,11 @@ import {
 import {
   loginGoogle,
   loginDemo,
+  loginWithEmail,
+  registerWithEmail,
   logout,
   restoreSession,
+  saveSession,
 } from "../services/auth/authService";
 
 export const AuthContext =
@@ -34,12 +37,8 @@ export function AuthProvider({
       const restoredSession =
         restoreSession();
 
-      if (
-        restoredSession?.user
-      ) {
-        setSession(
-          restoredSession,
-        );
+      if (restoredSession?.user) {
+        setSession(restoredSession);
       }
     } finally {
       setLoading(false);
@@ -54,9 +53,7 @@ export function AuthProvider({
       const newSession =
         await loginGoogle();
 
-      setSession(
-        newSession,
-      );
+      setSession(newSession);
 
       return newSession;
     } catch (error) {
@@ -80,15 +77,116 @@ export function AuthProvider({
       const newSession =
         await loginDemo();
 
-      setSession(
-        newSession,
-      );
+      setSession(newSession);
 
       return newSession;
     } catch (error) {
       const message =
         error?.message ||
         "No se pudo iniciar sesión demo.";
+
+      setAuthError(message);
+
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleLoginWithEmail({
+    email,
+    password,
+  }) {
+    setLoading(true);
+    setAuthError("");
+
+    try {
+      const result =
+        await loginWithEmail({
+          email,
+          password,
+        });
+
+      const supabaseUser =
+        result?.user ||
+        result?.data?.user ||
+        result?.session?.user ||
+        result?.data?.session?.user ||
+        null;
+
+      const accessToken =
+        result?.session?.access_token ||
+        result?.data?.session?.access_token ||
+        "";
+
+      const newSession = {
+        provider: "email",
+
+        accessToken,
+
+        user: {
+          id:
+            supabaseUser?.id ||
+            email,
+
+          name:
+            supabaseUser?.user_metadata?.name ||
+            supabaseUser?.email ||
+            email,
+
+          email:
+            supabaseUser?.email ||
+            email,
+
+          picture:
+            supabaseUser?.user_metadata?.avatar_url ||
+            "",
+
+          provider: "email",
+        },
+
+        createdAt:
+          new Date().toISOString(),
+      };
+
+      saveSession(newSession);
+      setSession(newSession);
+
+      return newSession;
+    } catch (error) {
+      const message =
+        error?.message ||
+        "No se pudo iniciar sesión con correo.";
+
+      setAuthError(message);
+
+      throw new Error(message);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleRegisterWithEmail({
+    name,
+    email,
+    password,
+  }) {
+    setLoading(true);
+    setAuthError("");
+
+    try {
+      const result =
+        await registerWithEmail({
+          name,
+          email,
+          password,
+        });
+
+      return result;
+    } catch (error) {
+      const message =
+        error?.message ||
+        "No se pudo crear la cuenta.";
 
       setAuthError(message);
 
@@ -131,6 +229,12 @@ export function AuthProvider({
 
       loginDemo:
         handleLoginDemo,
+
+      loginWithEmail:
+        handleLoginWithEmail,
+
+      registerWithEmail:
+        handleRegisterWithEmail,
 
       logout:
         handleLogout,

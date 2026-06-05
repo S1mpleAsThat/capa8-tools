@@ -19,6 +19,8 @@ export default function LoginPage() {
   const {
     loginGoogle,
     loginDemo,
+    loginWithEmail,
+    registerWithEmail,
     loading,
     authError,
   } = useAuth();
@@ -29,7 +31,40 @@ export default function LoginPage() {
     t,
   } = useLanguage();
 
+  const authText = t.auth || {
+    loginTitle: "Iniciar sesión",
+    registerTitle: "Crear cuenta",
+    loginText: "Ingresa con Google, demo o correo electrónico.",
+    registerText: "Crea tu cuenta con correo y contraseña.",
+    emailPlaceholder: "Correo electrónico",
+    passwordPlaceholder: "Contraseña",
+    namePlaceholder: "Nombre completo",
+    loginEmail: "Ingresar con correo",
+    createAccount: "Crear cuenta",
+    needAccount: "Crear una cuenta nueva",
+    alreadyHaveAccount: "Ya tengo una cuenta",
+    or: "o",
+    loginError: "No se pudo iniciar sesión.",
+    registerError: "No se pudo crear la cuenta.",
+    accountCreated: "Cuenta creada correctamente. Revisa tu correo si requiere confirmación.",
+  };
+
   const [localError, setLocalError] =
+    useState("");
+
+  const [localStatus, setLocalStatus] =
+    useState("");
+
+  const [authMode, setAuthMode] =
+    useState("login");
+
+  const [name, setName] =
+    useState("");
+
+  const [email, setEmail] =
+    useState("");
+
+  const [password, setPassword] =
     useState("");
 
   const [
@@ -42,9 +77,17 @@ export default function LoginPage() {
     setLanguageStatus,
   ] = useState("");
 
+  const isRegisterMode =
+    authMode === "register";
+
   useEffect(() => {
     setPendingLanguage(language);
   }, [language]);
+
+  function clearMessages() {
+    setLocalError("");
+    setLocalStatus("");
+  }
 
   function handleSaveLanguage() {
     setLanguage(pendingLanguage);
@@ -55,8 +98,18 @@ export default function LoginPage() {
     }, 1800);
   }
 
+  function handleToggleMode() {
+    clearMessages();
+
+    setAuthMode((currentMode) =>
+      currentMode === "login"
+        ? "register"
+        : "login",
+    );
+  }
+
   async function handleGoogleLogin() {
-    setLocalError("");
+    clearMessages();
 
     try {
       await loginGoogle();
@@ -69,7 +122,7 @@ export default function LoginPage() {
   }
 
   async function handleDemoLogin() {
-    setLocalError("");
+    clearMessages();
 
     try {
       await loginDemo();
@@ -77,6 +130,40 @@ export default function LoginPage() {
       setLocalError(
         error?.message ||
           "No se pudo iniciar sesión demo.",
+      );
+    }
+  }
+
+  async function handleEmailSubmit(event) {
+    event.preventDefault();
+
+    clearMessages();
+
+    try {
+      if (isRegisterMode) {
+        await registerWithEmail({
+          name,
+          email,
+          password,
+        });
+
+        setLocalStatus(
+          authText.accountCreated,
+        );
+
+        return;
+      }
+
+      await loginWithEmail({
+        email,
+        password,
+      });
+    } catch (error) {
+      setLocalError(
+        error?.message ||
+          (isRegisterMode
+            ? authText.registerError
+            : authText.loginError),
       );
     }
   }
@@ -90,7 +177,7 @@ export default function LoginPage() {
         minHeight: "100vh",
         position: "relative",
         overflow: "hidden",
-        padding: "38px 24px 28px",
+        padding: "34px 24px 28px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -164,11 +251,11 @@ export default function LoginPage() {
           alt="CAPA 8"
           decoding="async"
           style={{
-            width: "218px",
-            maxWidth: "70vw",
+            width: "184px",
+            maxWidth: "62vw",
             height: "auto",
             objectFit: "contain",
-            marginBottom: "44px",
+            marginBottom: "26px",
             filter:
               "drop-shadow(0 0 34px rgba(24,255,173,.46)) drop-shadow(0 24px 62px rgba(0,0,0,.78))",
           }}
@@ -176,11 +263,53 @@ export default function LoginPage() {
 
         <div
           style={{
+            width: "100%",
             display: "grid",
             gap: "12px",
-            width: "100%",
+            padding: "18px",
+            borderRadius: "24px",
+            border:
+              "1px solid rgba(0,255,170,.13)",
+            background:
+              "linear-gradient(180deg, rgba(5,18,14,.84), rgba(0,0,0,.72))",
+            boxShadow:
+              "0 20px 60px rgba(0,0,0,.38), inset 0 0 24px rgba(0,255,170,.035)",
+            backdropFilter: "blur(14px)",
           }}
         >
+          <div
+            style={{
+              display: "grid",
+              gap: "6px",
+              marginBottom: "4px",
+            }}
+          >
+            <h1
+              style={{
+                fontSize: "24px",
+                lineHeight: 1.05,
+                letterSpacing: "-.8px",
+              }}
+            >
+              {isRegisterMode
+                ? authText.registerTitle
+                : authText.loginTitle}
+            </h1>
+
+            <p
+              style={{
+                color:
+                  "rgba(255,255,255,.62)",
+                fontSize: "13px",
+                lineHeight: 1.45,
+              }}
+            >
+              {isRegisterMode
+                ? authText.registerText
+                : authText.loginText}
+            </p>
+          </div>
+
           <button
             className="ghost-btn"
             type="button"
@@ -215,17 +344,180 @@ export default function LoginPage() {
             disabled={loading}
             style={{
               width: "100%",
-              minHeight: "50px",
+              minHeight: "48px",
               background:
                 "linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.018))",
               border:
                 "1px solid rgba(255,255,255,.10)",
-              color: "rgba(255,255,255,.76)",
+              color:
+                "rgba(255,255,255,.76)",
               fontSize: "14px",
               fontWeight: 700,
             }}
           >
             {t.loginDemo}
+          </button>
+
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              color:
+                "rgba(255,255,255,.38)",
+              fontSize: "11px",
+              fontWeight: 800,
+              letterSpacing: ".8px",
+              textTransform: "uppercase",
+            }}
+          >
+            <span
+              style={{
+                flex: 1,
+                height: "1px",
+                background:
+                  "rgba(255,255,255,.08)",
+              }}
+            />
+
+            {authText.or}
+
+            <span
+              style={{
+                flex: 1,
+                height: "1px",
+                background:
+                  "rgba(255,255,255,.08)",
+              }}
+            />
+          </div>
+
+          <form
+            onSubmit={handleEmailSubmit}
+            style={{
+              display: "grid",
+              gap: "10px",
+            }}
+          >
+            {isRegisterMode ? (
+              <input
+                type="text"
+                value={name}
+                onChange={(event) =>
+                  setName(event.target.value)
+                }
+                placeholder={
+                  authText.namePlaceholder
+                }
+                autoComplete="name"
+                style={{
+                  minHeight: "46px",
+                  width: "100%",
+                  borderRadius: "16px",
+                  border:
+                    "1px solid rgba(0,255,170,.14)",
+                  background:
+                    "rgba(0,0,0,.42)",
+                  color: "#ffffff",
+                  padding: "0 14px",
+                  outline: "none",
+                  fontSize: "14px",
+                }}
+              />
+            ) : null}
+
+            <input
+              type="email"
+              value={email}
+              onChange={(event) =>
+                setEmail(event.target.value)
+              }
+              placeholder={
+                authText.emailPlaceholder
+              }
+              autoComplete="email"
+              style={{
+                minHeight: "46px",
+                width: "100%",
+                borderRadius: "16px",
+                border:
+                  "1px solid rgba(0,255,170,.14)",
+                background:
+                  "rgba(0,0,0,.42)",
+                color: "#ffffff",
+                padding: "0 14px",
+                outline: "none",
+                fontSize: "14px",
+              }}
+            />
+
+            <input
+              type="password"
+              value={password}
+              onChange={(event) =>
+                setPassword(event.target.value)
+              }
+              placeholder={
+                authText.passwordPlaceholder
+              }
+              autoComplete={
+                isRegisterMode
+                  ? "new-password"
+                  : "current-password"
+              }
+              style={{
+                minHeight: "46px",
+                width: "100%",
+                borderRadius: "16px",
+                border:
+                  "1px solid rgba(0,255,170,.14)",
+                background:
+                  "rgba(0,0,0,.42)",
+                color: "#ffffff",
+                padding: "0 14px",
+                outline: "none",
+                fontSize: "14px",
+              }}
+            />
+
+            <button
+              className="primary-btn"
+              type="submit"
+              disabled={loading}
+              style={{
+                width: "100%",
+                minHeight: "48px",
+              }}
+            >
+              {loading
+                ? t.connecting
+                : isRegisterMode
+                  ? authText.createAccount
+                  : authText.loginEmail}
+            </button>
+          </form>
+
+          <button
+            className="ghost-btn"
+            type="button"
+            onClick={handleToggleMode}
+            disabled={loading}
+            style={{
+              width: "100%",
+              minHeight: "44px",
+              background:
+                "linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.018))",
+              border:
+                "1px solid rgba(255,255,255,.10)",
+              color:
+                "rgba(255,255,255,.76)",
+              fontSize: "13px",
+              fontWeight: 800,
+            }}
+          >
+            {isRegisterMode
+              ? authText.alreadyHaveAccount
+              : authText.needAccount}
           </button>
         </div>
 
@@ -255,12 +547,38 @@ export default function LoginPage() {
           </div>
         ) : null}
 
+        {localStatus ? (
+          <div
+            style={{
+              marginTop: "16px",
+              width: "100%",
+              border:
+                "1px solid rgba(0,255,170,.18)",
+              background:
+                "rgba(0,255,170,.08)",
+              borderRadius: "16px",
+              padding: "12px 14px",
+            }}
+          >
+            <p
+              style={{
+                color:
+                  "rgba(220,255,240,.9)",
+                fontSize: "13px",
+                lineHeight: 1.45,
+              }}
+            >
+              {localStatus}
+            </p>
+          </div>
+        ) : null}
+
         <div
           style={{
             display: "grid",
             justifyItems: "center",
             gap: "10px",
-            marginTop: "38px",
+            marginTop: "28px",
           }}
         >
           <p
@@ -280,7 +598,7 @@ export default function LoginPage() {
             loading="lazy"
             decoding="async"
             style={{
-              width: "72px",
+              width: "66px",
               maxWidth: "22vw",
               height: "auto",
               objectFit: "contain",
@@ -292,7 +610,7 @@ export default function LoginPage() {
             style={{
               display: "grid",
               gap: "8px",
-              marginTop: "18px",
+              marginTop: "14px",
               width: "180px",
             }}
           >
