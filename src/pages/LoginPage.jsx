@@ -15,6 +15,12 @@ import scanlines from "../assets/effects/scanlines.png";
 import useAuth from "../hooks/useAuth";
 import useLanguage from "../hooks/useLanguage";
 
+const ACCOUNT_CREATED_MESSAGE =
+  "Cuenta creada correctamente. Revisa tu correo y confirma tu cuenta antes de iniciar sesión.";
+
+const EMAIL_NOT_CONFIRMED_MESSAGE =
+  "Debes confirmar tu correo electrónico antes de iniciar sesión.";
+
 export default function LoginPage() {
   const {
     loginGoogle,
@@ -46,7 +52,7 @@ export default function LoginPage() {
     or: "o",
     loginError: "No se pudo iniciar sesión.",
     registerError: "No se pudo crear la cuenta.",
-    accountCreated: "Cuenta creada correctamente. Revisa tu correo si requiere confirmación.",
+    accountCreated: ACCOUNT_CREATED_MESSAGE,
   };
 
   const [localError, setLocalError] =
@@ -89,6 +95,26 @@ export default function LoginPage() {
     setLocalStatus("");
   }
 
+  function getAuthErrorMessage(error, fallbackMessage) {
+    const message =
+      error?.message ||
+      fallbackMessage ||
+      "No se pudo completar la autenticación.";
+
+    if (
+      message
+        .toLowerCase()
+        .includes("email not confirmed") ||
+      message
+        .toLowerCase()
+        .includes("correo electrónico antes de iniciar sesión")
+    ) {
+      return EMAIL_NOT_CONFIRMED_MESSAGE;
+    }
+
+    return message;
+  }
+
   function handleSaveLanguage() {
     setLanguage(pendingLanguage);
     setLanguageStatus(t.languageSaved);
@@ -115,8 +141,10 @@ export default function LoginPage() {
       await loginGoogle();
     } catch (error) {
       setLocalError(
-        error?.message ||
+        getAuthErrorMessage(
+          error,
           "No se pudo iniciar sesión con Google.",
+        ),
       );
     }
   }
@@ -128,8 +156,10 @@ export default function LoginPage() {
       await loginDemo();
     } catch (error) {
       setLocalError(
-        error?.message ||
+        getAuthErrorMessage(
+          error,
           "No se pudo iniciar sesión demo.",
+        ),
       );
     }
   }
@@ -141,14 +171,20 @@ export default function LoginPage() {
 
     try {
       if (isRegisterMode) {
-        await registerWithEmail({
-          name,
-          email,
-          password,
-        });
+        const result =
+          await registerWithEmail({
+            name,
+            email,
+            password,
+          });
+
+        setPassword("");
+        setAuthMode("login");
 
         setLocalStatus(
-          authText.accountCreated,
+          result?.message ||
+            authText.accountCreated ||
+            ACCOUNT_CREATED_MESSAGE,
         );
 
         return;
@@ -160,10 +196,12 @@ export default function LoginPage() {
       });
     } catch (error) {
       setLocalError(
-        error?.message ||
-          (isRegisterMode
+        getAuthErrorMessage(
+          error,
+          isRegisterMode
             ? authText.registerError
-            : authText.loginError),
+            : authText.loginError,
+        ),
       );
     }
   }
