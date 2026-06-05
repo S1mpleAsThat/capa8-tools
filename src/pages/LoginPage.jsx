@@ -195,9 +195,11 @@ export default function LoginPage() {
           password,
         });
 
+        setName("");
         setPassword("");
         setConfirmPassword("");
         setAuthMode("login");
+        setLocalError("");
         setLocalStatus(REGISTER_SUCCESS_MESSAGE);
 
         return;
@@ -609,6 +611,32 @@ export default function LoginPage() {
             </button>
           </form>
 
+          {localStatus ? (
+            <div
+              style={{
+                width: "100%",
+                border:
+                  "1px solid rgba(0,255,170,.18)",
+                background:
+                  "rgba(0,255,170,.08)",
+                borderRadius: "16px",
+                padding: "12px 14px",
+              }}
+            >
+              <p
+                style={{
+                  color:
+                    "rgba(220,255,240,.9)",
+                  fontSize: "13px",
+                  lineHeight: 1.45,
+                  whiteSpace: "pre-line",
+                }}
+              >
+                {localStatus}
+              </p>
+            </div>
+          ) : null}
+
           <button
             className="ghost-btn"
             type="button"
@@ -655,33 +683,6 @@ export default function LoginPage() {
               }}
             >
               {errorMessage}
-            </p>
-          </div>
-        ) : null}
-
-        {localStatus ? (
-          <div
-            style={{
-              marginTop: "16px",
-              width: "100%",
-              border:
-                "1px solid rgba(0,255,170,.18)",
-              background:
-                "rgba(0,255,170,.08)",
-              borderRadius: "16px",
-              padding: "12px 14px",
-            }}
-          >
-            <p
-              style={{
-                color:
-                  "rgba(220,255,240,.9)",
-                fontSize: "13px",
-                lineHeight: 1.45,
-                whiteSpace: "pre-line",
-              }}
-            >
-              {localStatus}
             </p>
           </div>
         ) : null}
