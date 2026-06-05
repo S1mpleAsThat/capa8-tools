@@ -41,7 +41,7 @@ function getProviderLabel(provider) {
       return "GOOGLE";
 
     case "email":
-      return "EMAIL";
+      return "Usuario";
 
     case "demo":
       return "DEMO";
