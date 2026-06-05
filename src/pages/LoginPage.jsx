@@ -15,11 +15,14 @@ import scanlines from "../assets/effects/scanlines.png";
 import useAuth from "../hooks/useAuth";
 import useLanguage from "../hooks/useLanguage";
 
-const ACCOUNT_CREATED_MESSAGE =
-  "Cuenta creada correctamente. Revisa tu correo y confirma tu cuenta antes de iniciar sesión.";
+const REGISTER_SUCCESS_MESSAGE =
+  "Cuenta creada correctamente.\nRevisa tu correo electrónico para confirmar tu cuenta antes de iniciar sesión.";
 
 const EMAIL_NOT_CONFIRMED_MESSAGE =
   "Debes confirmar tu correo electrónico antes de iniciar sesión.";
+
+const PASSWORDS_DO_NOT_MATCH_MESSAGE =
+  "Las contraseñas no coinciden.";
 
 export default function LoginPage() {
   const {
@@ -52,7 +55,7 @@ export default function LoginPage() {
     or: "o",
     loginError: "No se pudo iniciar sesión.",
     registerError: "No se pudo crear la cuenta.",
-    accountCreated: ACCOUNT_CREATED_MESSAGE,
+    accountCreated: REGISTER_SUCCESS_MESSAGE,
   };
 
   const [localError, setLocalError] =
@@ -72,6 +75,12 @@ export default function LoginPage() {
 
   const [password, setPassword] =
     useState("");
+
+  const [confirmPassword, setConfirmPassword] =
+    useState("");
+
+  const [showPassword, setShowPassword] =
+    useState(false);
 
   const [
     pendingLanguage,
@@ -134,6 +143,10 @@ export default function LoginPage() {
     );
   }
 
+  function handleTogglePasswordVisibility() {
+    setShowPassword((currentValue) => !currentValue);
+  }
+
   async function handleGoogleLogin() {
     clearMessages();
 
@@ -171,21 +184,21 @@ export default function LoginPage() {
 
     try {
       if (isRegisterMode) {
-        const result =
-          await registerWithEmail({
-            name,
-            email,
-            password,
-          });
+        if (password !== confirmPassword) {
+          setLocalError(PASSWORDS_DO_NOT_MATCH_MESSAGE);
+          return;
+        }
+
+        await registerWithEmail({
+          name,
+          email,
+          password,
+        });
 
         setPassword("");
+        setConfirmPassword("");
         setAuthMode("login");
-
-        setLocalStatus(
-          result?.message ||
-            authText.accountCreated ||
-            ACCOUNT_CREATED_MESSAGE,
-        );
+        setLocalStatus(REGISTER_SUCCESS_MESSAGE);
 
         return;
       }
@@ -429,7 +442,6 @@ export default function LoginPage() {
               }}
             />
           </div>
-
           <form
             onSubmit={handleEmailSubmit}
             style={{
@@ -489,34 +501,96 @@ export default function LoginPage() {
               }}
             />
 
-            <input
-              type="password"
-              value={password}
-              onChange={(event) =>
-                setPassword(event.target.value)
-              }
-              placeholder={
-                authText.passwordPlaceholder
-              }
-              autoComplete={
-                isRegisterMode
-                  ? "new-password"
-                  : "current-password"
-              }
+            <div
               style={{
-                minHeight: "46px",
+                position: "relative",
                 width: "100%",
-                borderRadius: "16px",
-                border:
-                  "1px solid rgba(0,255,170,.14)",
-                background:
-                  "rgba(0,0,0,.42)",
-                color: "#ffffff",
-                padding: "0 14px",
-                outline: "none",
-                fontSize: "14px",
               }}
-            />
+            >
+              <input
+                type={
+                  showPassword
+                    ? "text"
+                    : "password"
+                }
+                value={password}
+                onChange={(event) =>
+                  setPassword(event.target.value)
+                }
+                placeholder={
+                  authText.passwordPlaceholder
+                }
+                autoComplete={
+                  isRegisterMode
+                    ? "new-password"
+                    : "current-password"
+                }
+                style={{
+                  minHeight: "46px",
+                  width: "100%",
+                  borderRadius: "16px",
+                  border:
+                    "1px solid rgba(0,255,170,.14)",
+                  background:
+                    "rgba(0,0,0,.42)",
+                  color: "#ffffff",
+                  padding: "0 98px 0 14px",
+                  outline: "none",
+                  fontSize: "14px",
+                }}
+              />
+
+              <button
+                type="button"
+                onClick={handleTogglePasswordVisibility}
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  right: "10px",
+                  transform: "translateY(-50%)",
+                  border: "none",
+                  background: "transparent",
+                  color: "#18ffad",
+                  fontSize: "11px",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  padding: "6px 4px",
+                }}
+              >
+                {showPassword
+                  ? "👁 Ocultar"
+                  : "👁 Mostrar"}
+              </button>
+            </div>
+
+            {isRegisterMode ? (
+              <input
+                type={
+                  showPassword
+                    ? "text"
+                    : "password"
+                }
+                value={confirmPassword}
+                onChange={(event) =>
+                  setConfirmPassword(event.target.value)
+                }
+                placeholder="Confirmar contraseña"
+                autoComplete="new-password"
+                style={{
+                  minHeight: "46px",
+                  width: "100%",
+                  borderRadius: "16px",
+                  border:
+                    "1px solid rgba(0,255,170,.14)",
+                  background:
+                    "rgba(0,0,0,.42)",
+                  color: "#ffffff",
+                  padding: "0 14px",
+                  outline: "none",
+                  fontSize: "14px",
+                }}
+              />
+            ) : null}
 
             <button
               className="primary-btn"
@@ -604,6 +678,7 @@ export default function LoginPage() {
                   "rgba(220,255,240,.9)",
                 fontSize: "13px",
                 lineHeight: 1.45,
+                whiteSpace: "pre-line",
               }}
             >
               {localStatus}
