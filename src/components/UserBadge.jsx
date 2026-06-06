@@ -1,10 +1,26 @@
 // src/components/UserBadge.jsx
 
-import { useEffect, useState } from "react";
+import {
+  useEffect,
+  useState,
+} from "react";
 
 import logoSymbolPremium from "../assets/branding/logo-symbol-premium.png";
 
 import useAuth from "../hooks/useAuth";
+
+import {
+  removeUserItem,
+} from "../services/storage/userStorage";
+
+const USER_DATA_KEYS = [
+  "ai-history",
+  "technical-checklist",
+  "template-favorites",
+  "template-recents",
+  "ai-prefill",
+  "language",
+];
 
 function getProviderLabel(provider) {
   switch (provider) {
@@ -26,6 +42,8 @@ export default function UserBadge() {
   const { user, logout, loading } = useAuth();
 
   const [avatarHasError, setAvatarHasError] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteStatus, setDeleteStatus] = useState("");
 
   useEffect(() => {
     setAvatarHasError(false);
@@ -44,6 +62,31 @@ export default function UserBadge() {
     await logout();
   }
 
+  function handleOpenDeleteConfirm() {
+    setDeleteStatus("");
+    setShowDeleteConfirm(true);
+  }
+
+  function handleCancelDeleteAccount() {
+    setShowDeleteConfirm(false);
+  }
+
+  // Google Play account deletion compliance
+  async function handleConfirmDeleteAccount() {
+    USER_DATA_KEYS.forEach((key) => {
+      removeUserItem(user.id, key);
+    });
+
+    setDeleteStatus("Cuenta eliminada correctamente");
+    setShowDeleteConfirm(false);
+
+    await logout();
+
+    if (typeof window !== "undefined") {
+      window.location.href = "/";
+    }
+  }
+
   return (
     <div
       style={{
@@ -57,6 +100,7 @@ export default function UserBadge() {
         borderRadius: "18px",
         backdropFilter: "blur(12px)",
         maxWidth: "62vw",
+        position: "relative",
       }}
     >
       {!avatarHasError ? (
@@ -138,20 +182,143 @@ export default function UserBadge() {
         </p>
       </div>
 
-      <button
-        className="ghost-btn"
-        type="button"
-        onClick={handleLogout}
-        disabled={loading}
+      <div
         style={{
-          minHeight: "34px",
-          padding: "0 12px",
-          fontSize: "11px",
-          whiteSpace: "nowrap",
+          display: "grid",
+          gap: "8px",
         }}
       >
-        Salir
-      </button>
+        <button
+          className="ghost-btn"
+          type="button"
+          onClick={handleLogout}
+          disabled={loading}
+          style={{
+            minHeight: "34px",
+            padding: "0 12px",
+            fontSize: "11px",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Salir
+        </button>
+
+        <button
+          className="ghost-btn"
+          type="button"
+          onClick={handleOpenDeleteConfirm}
+          disabled={loading}
+          style={{
+            minHeight: "34px",
+            padding: "0 12px",
+            fontSize: "11px",
+            whiteSpace: "nowrap",
+          }}
+        >
+          Eliminar cuenta y datos
+        </button>
+      </div>
+
+      {showDeleteConfirm ? (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 12px)",
+            right: 0,
+            width: "min(320px, calc(100vw - 36px))",
+            border: "1px solid rgba(255,120,120,.22)",
+            background:
+              "linear-gradient(180deg, rgba(24,8,8,.96), rgba(0,0,0,.92))",
+            borderRadius: "18px",
+            boxShadow:
+              "0 24px 60px rgba(0,0,0,.48), inset 0 0 28px rgba(255,120,120,.035)",
+            backdropFilter: "blur(16px)",
+            padding: "16px",
+            zIndex: 90,
+          }}
+        >
+          <strong
+            style={{
+              display: "block",
+              color: "#ffffff",
+              fontSize: "14px",
+              lineHeight: 1.2,
+              marginBottom: "8px",
+            }}
+          >
+            Eliminar cuenta y datos
+          </strong>
+
+          <p
+            style={{
+              color: "rgba(255,255,255,.72)",
+              fontSize: "12px",
+              lineHeight: 1.45,
+              marginBottom: "14px",
+            }}
+          >
+            Esta acción eliminará todos los datos almacenados localmente para esta cuenta y cerrará la sesión. Esta acción no se puede deshacer. ¿Deseas continuar?
+          </p>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: "10px",
+            }}
+          >
+            <button
+              className="ghost-btn"
+              type="button"
+              onClick={handleCancelDeleteAccount}
+              style={{
+                minHeight: "38px",
+                fontSize: "11px",
+              }}
+            >
+              Cancelar
+            </button>
+
+            <button
+              className="ghost-btn"
+              type="button"
+              onClick={handleConfirmDeleteAccount}
+              style={{
+                minHeight: "38px",
+                fontSize: "11px",
+              }}
+            >
+              Eliminar
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {deleteStatus ? (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 12px)",
+            right: 0,
+            width: "min(320px, calc(100vw - 36px))",
+            border: "1px solid rgba(0,255,170,.18)",
+            background: "rgba(0,255,170,.08)",
+            borderRadius: "16px",
+            padding: "12px 14px",
+            zIndex: 90,
+          }}
+        >
+          <p
+            style={{
+              color: "rgba(220,255,240,.9)",
+              fontSize: "13px",
+              lineHeight: 1.45,
+            }}
+          >
+            {deleteStatus}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }

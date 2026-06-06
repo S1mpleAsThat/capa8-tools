@@ -57,6 +57,17 @@ export default function LegalFooter() {
         </a>
 
         <a
+          href="/account-deletion"
+          style={{
+            color: "rgba(255,255,255,.56)",
+            fontSize: "12px",
+            textDecoration: "none",
+          }}
+        >
+          Eliminar cuenta
+        </a>
+
+        <a
           href="/contact"
           style={{
             color: "rgba(255,255,255,.56)",

@@ -53,6 +53,7 @@ const PrivacyPolicyPage = lazy(() => import("./pages/PrivacyPolicyPage"));
 const TermsOfServicePage = lazy(() => import("./pages/TermsOfServicePage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const ProPage = lazy(() => import("./pages/ProPage"));
+const AccountDeletionPage = lazy(() => import("./pages/AccountDeletionPage"));
 
 const ACTIVE_TOOL_KEY = "active-tool";
 const PUBLIC_LANGUAGE_KEY = "capa8-public-language";
@@ -175,6 +176,16 @@ function PublicRoute() {
       <AppShell showBottomBanner={false}>
         <Suspense fallback={<LoadingScreen />}>
           <ProPage />
+        </Suspense>
+      </AppShell>
+    );
+  }
+
+  if (currentPath === "/account-deletion") {
+    return (
+      <AppShell showBottomBanner={false}>
+        <Suspense fallback={<LoadingScreen />}>
+          <AccountDeletionPage />
         </Suspense>
       </AppShell>
     );
