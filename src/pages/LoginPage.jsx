@@ -30,7 +30,6 @@ const PASSWORDS_DO_NOT_MATCH_MESSAGE =
 export default function LoginPage() {
   const {
     loginGoogle,
-    loginDemo,
     loginWithEmail,
     registerWithEmail,
     loading,
@@ -46,7 +45,7 @@ export default function LoginPage() {
   const authText = t.auth || {
     loginTitle: "Iniciar sesión",
     registerTitle: "Crear cuenta",
-    loginText: "Ingresa con Google, demo o correo electrónico.",
+    loginText: "Ingresa con Google o correo electrónico.",
     registerText: "Crea tu cuenta con correo y contraseña.",
     emailPlaceholder: "Correo electrónico",
     passwordPlaceholder: "Contraseña",
@@ -177,21 +176,6 @@ export default function LoginPage() {
         getAuthErrorMessage(
           error,
           "No se pudo iniciar sesión con Google.",
-        ),
-      );
-    }
-  }
-
-  async function handleDemoLogin() {
-    clearMessages();
-
-    try {
-      await loginDemo();
-    } catch (error) {
-      setLocalError(
-        getAuthErrorMessage(
-          error,
-          "No se pudo iniciar sesión demo.",
         ),
       );
     }
@@ -418,28 +402,6 @@ export default function LoginPage() {
               ? t.connecting
               : t.loginGoogle}
           </button>
-
-          <button
-            className="ghost-btn"
-            type="button"
-            onClick={handleDemoLogin}
-            disabled={loading}
-            style={{
-              width: "100%",
-              minHeight: "48px",
-              background:
-                "linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.018))",
-              border:
-                "1px solid rgba(255,255,255,.10)",
-              color:
-                "rgba(255,255,255,.76)",
-              fontSize: "14px",
-              fontWeight: 700,
-            }}
-          >
-            {t.loginDemo}
-          </button>
-
           <div
             style={{
               display: "flex",
@@ -473,6 +435,7 @@ export default function LoginPage() {
               }}
             />
           </div>
+
           <form
             onSubmit={handleEmailSubmit}
             style={{

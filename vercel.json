@@ -1,23 +1,7 @@
 {
   "rewrites": [
     {
-      "source": "/privacy",
-      "destination": "/"
-    },
-    {
-      "source": "/terms",
-      "destination": "/"
-    },
-    {
-      "source": "/contact",
-      "destination": "/"
-    },
-    {
-      "source": "/pro",
-      "destination": "/"
-    },
-    {
-      "source": "/auth/callback",
+      "source": "/(.*)",
       "destination": "/"
     }
   ]
